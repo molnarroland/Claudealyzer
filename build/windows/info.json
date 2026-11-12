@@ -1,17 +1,17 @@
 {
 	"fixed": {
-		"file_version": "0.1.0",
-		"product_version": "0.1.0"
+		"file_version": "0.2.0",
+		"product_version": "0.2.0"
 	},
 	"info": {
 		"0409": {
-			"FileVersion": "0.1.0",
-			"ProductVersion": "0.1.0",
+			"FileVersion": "0.2.0",
+			"ProductVersion": "0.2.0",
 			"CompanyName": "Claudealyzer",
-			"FileDescription": "A claudealyzer application",
-			"LegalCopyright": "© 2026, My Company",
+			"FileDescription": "Claudealyzer",
+			"LegalCopyright": "© 2026 Roland Molnár",
 			"ProductName": "Claudealyzer",
-			"Comments": "This is a comment"
+			"Comments": "Local, read-only analyzer for coding-agent token usage, time and cost"
 		}
 	}
 }

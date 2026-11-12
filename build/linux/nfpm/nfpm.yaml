@@ -6,13 +6,13 @@
 name: "claudealyzer"
 arch: ${GOARCH}
 platform: "linux"
-version: "0.1.0"
+version: "0.2.0"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
-description: "A claudealyzer application"
+description: "Local, read-only analyzer for coding-agent token usage, time and cost"
 vendor: "Claudealyzer"
-homepage: "https://wails.io"
+homepage: "https://github.com/molnarroland/Claudealyzer"
 license: "MIT"
 release: "1"
 

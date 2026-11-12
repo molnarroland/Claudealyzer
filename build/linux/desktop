@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
 Name=Claudealyzer
-Comment=A claudealyzer application
+Comment=Local, read-only analyzer for coding-agent token usage, time and cost
 # The Exec line includes %u to pass the URL to the application
 Exec=/usr/local/bin/claudealyzer %u
 Terminal=false
 Type=Application
 Icon=claudealyzer
-Categories=Utility;
+Categories=Development;Utility;
 StartupWMClass=claudealyzer
 
  

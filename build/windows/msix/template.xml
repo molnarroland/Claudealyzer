@@ -17,8 +17,8 @@
         PackageDisplayName="Claudealyzer"
         PublisherName="CN=Claudealyzer"
         PublisherDisplayName="Claudealyzer"
-        Version="0.1.0.0"
-        PackageDescription="A claudealyzer application">
+        Version="0.2.0.0"
+        PackageDescription="Local, read-only analyzer for coding-agent token usage, time and cost">
         <Capabilities>
             <Capability Name="runFullTrust" />
             
@@ -26,7 +26,7 @@
         <Applications>
             <Application
                 Id="dev.claudealyzer.app"
-                Description="A claudealyzer application"
+                Description="Local, read-only analyzer for coding-agent token usage, time and cost"
                 DisplayName="Claudealyzer"
                 ExecutableName="claudealyzer"
                 EntryPoint="Windows.FullTrustApplication">
@@ -43,7 +43,7 @@
             <Framework>false</Framework>
             <DisplayName>Claudealyzer</DisplayName>
             <PublisherDisplayName>Claudealyzer</PublisherDisplayName>
-            <Description>A claudealyzer application</Description>
+            <Description>Local, read-only analyzer for coding-agent token usage, time and cost</Description>
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>
