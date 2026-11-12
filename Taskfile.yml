@@ -29,6 +29,26 @@ tasks:
     cmds:
       - task: "{{.GOOS}}:package"
 
+  package:mac:arm64:
+    summary: Packages a macOS Apple Silicon app (bin/<app>-arm64.app)
+    cmds:
+      - task: darwin:package:arm64
+
+  package:mac:amd64:
+    summary: Packages a macOS Intel app (bin/<app>-amd64.app)
+    cmds:
+      - task: darwin:package:amd64
+
+  package:mac:universal:
+    summary: Packages one macOS app containing both arm64 and amd64 (bin/<app>.app)
+    cmds:
+      - task: darwin:package:universal
+
+  package:mac:all:
+    summary: Packages arm64, amd64 and universal macOS apps
+    cmds:
+      - task: darwin:package:all
+
   run:
     summary: Runs the application
     cmds:

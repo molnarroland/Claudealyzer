@@ -131,6 +131,40 @@ tasks:
     cmds:
       - task: create:app:bundle
 
+  package:arm64:
+    summary: Packages an Apple Silicon (arm64) build into bin/<app>-arm64.app
+    cmds:
+      - task: package:arch
+        vars: { ARCH: arm64 }
+
+  package:amd64:
+    summary: Packages an Intel (amd64) build into bin/<app>-amd64.app
+    cmds:
+      - task: package:arch
+        vars: { ARCH: amd64 }
+
+  package:all:
+    summary: Packages arm64, amd64 and universal .app bundles
+    cmds:
+      - task: package:arm64
+      - task: package:amd64
+      - task: package:universal
+
+  package:arch:
+    summary: Builds for ARCH and packages it into bin/<app>-<ARCH>.app
+    internal: true
+    requires:
+      vars: [ARCH]
+    cmds:
+      - task: build
+        vars:
+          ARCH: '{{.ARCH}}'
+          OUTPUT: '{{.BIN_DIR}}/{{.APP_NAME}}-{{.ARCH}}'
+      - task: create:app:bundle
+        vars:
+          BINARY: '{{.BIN_DIR}}/{{.APP_NAME}}-{{.ARCH}}'
+          BUNDLE: '{{.BIN_DIR}}/{{.APP_NAME}}-{{.ARCH}}.app'
+
   package:dmg:
     summary: Packages the application into a styled `.dmg`
     deps:
@@ -161,28 +195,36 @@ tasks:
 
   create:app:bundle:
     summary: Creates an `.app` bundle
+    vars:
+      # Override BINARY/BUNDLE to package a specific binary into a specific .app
+      BINARY: '{{.BINARY | default (printf "%s/%s" .BIN_DIR .APP_NAME)}}'
+      BUNDLE: '{{.BUNDLE | default (printf "%s/%s.app" .BIN_DIR .APP_NAME)}}'
     cmds:
       # A reused bundle can acquire Finder metadata in synced folders. Build a
       # fresh bundle so codesign never has to replace a contaminated signature.
-      - test -n "{{.BIN_DIR}}" && test -n "{{.APP_NAME}}" && rm -rf -- "{{.BIN_DIR}}/{{.APP_NAME}}.app"
-      - mkdir -p "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS"
-      - mkdir -p "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources"
-      - cp build/darwin/icons.icns "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources"
+      - test -n "{{.BUNDLE}}" && rm -rf -- "{{.BUNDLE}}"
+      - mkdir -p "{{.BUNDLE}}/Contents/MacOS"
+      - mkdir -p "{{.BUNDLE}}/Contents/Resources"
+      - cp build/darwin/icons.icns "{{.BUNDLE}}/Contents/Resources"
       - |
         if [ -f build/darwin/Assets.car ]; then
-          cp build/darwin/Assets.car "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources"
+          cp build/darwin/Assets.car "{{.BUNDLE}}/Contents/Resources"
         fi
-      - cp "{{.BIN_DIR}}/{{.APP_NAME}}" "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS"
-      - cp build/darwin/Info.plist "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents"
+      - cp "{{.BINARY}}" "{{.BUNDLE}}/Contents/MacOS/{{.APP_NAME}}"
+      - cp build/darwin/Info.plist "{{.BUNDLE}}/Contents"
       - task: '{{if eq OS "darwin"}}codesign:adhoc{{else}}codesign:skip{{end}}'
+        vars:
+          BUNDLE: '{{.BUNDLE}}'
 
   codesign:adhoc:
     summary: Ad-hoc signs the app bundle (macOS only)
     internal: true
+    vars:
+      BUNDLE: '{{.BUNDLE | default (printf "%s/%s.app" .BIN_DIR .APP_NAME)}}'
     cmds:
-      - xattr -cr "{{.BIN_DIR}}/{{.APP_NAME}}.app"
-      - codesign --force --deep --sign - "{{.BIN_DIR}}/{{.APP_NAME}}.app"
-      - codesign --verify --deep --strict "{{.BIN_DIR}}/{{.APP_NAME}}.app"
+      - xattr -cr "{{.BUNDLE}}"
+      - codesign --force --deep --sign - "{{.BUNDLE}}"
+      - codesign --verify --deep --strict "{{.BUNDLE}}"
 
   codesign:skip:
     summary: Skips codesigning when cross-compiling
