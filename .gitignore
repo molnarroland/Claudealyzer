@@ -1,0 +1,9 @@
+.task
+.wails
+bin
+frontend/dist
+frontend/node_modules
+.angular
+.idea
+.nx
+.DS_Store

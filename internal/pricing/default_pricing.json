@@ -1,0 +1,22 @@
+{
+  "note": "USD per million tokens. Anthropic rates from the published price list (snapshot 2026-11-03). Cache write 5m = 1.25x input, 1h = 2x input. OpenAI and Google rows are placeholders: check the provider's pricing page and edit them in Settings.",
+  "models": [
+    { "match": "claude-fable-5-2",  "provider": "anthropic", "from": "2026-01-01", "input": 8,    "cacheWrite5m": 10,    "cacheWrite1h": 16,   "cacheRead": 0.2,   "output": 40,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-mythos-5-2", "provider": "anthropic", "from": "2026-01-01", "input": 8,    "cacheWrite5m": 10,    "cacheWrite1h": 16,   "cacheRead": 0.2,   "output": 40,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-fable-5-1",  "provider": "anthropic", "from": "2026-01-01", "input": 10,   "cacheWrite5m": 12.5,  "cacheWrite1h": 20,   "cacheRead": 1,     "output": 50,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-mythos-5-1", "provider": "anthropic", "from": "2026-01-01", "input": 10,   "cacheWrite5m": 12.5,  "cacheWrite1h": 20,   "cacheRead": 1,     "output": 50,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-fable-5",    "provider": "anthropic", "from": "2026-01-01", "input": 10,   "cacheWrite5m": 12.5,  "cacheWrite1h": 20,   "cacheRead": 1,     "output": 50,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-opus-5-5",   "provider": "anthropic", "from": "2026-01-01", "input": 4,    "cacheWrite5m": 5,     "cacheWrite1h": 8,    "cacheRead": 0.2,   "output": 20,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-opus-5",     "provider": "anthropic", "from": "2026-01-01", "input": 5,    "cacheWrite5m": 6.25,  "cacheWrite1h": 10,   "cacheRead": 0.5,   "output": 25,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-opus-4",     "provider": "anthropic", "from": "2025-01-01", "input": 5,    "cacheWrite5m": 6.25,  "cacheWrite1h": 10,   "cacheRead": 0.5,   "output": 25,  "source": "Anthropic · 2026-11-03 (4.6-4.8)" },
+    { "match": "claude-sonnet-5-5", "provider": "anthropic", "from": "2026-01-01", "input": 2,    "cacheWrite5m": 2.5,   "cacheWrite1h": 4,    "cacheRead": 0.1,   "output": 10,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-sonnet-5",   "provider": "anthropic", "from": "2026-01-01", "input": 2,    "cacheWrite5m": 2.5,   "cacheWrite1h": 4,    "cacheRead": 0.2,   "output": 10,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-sonnet-4",   "provider": "anthropic", "from": "2025-01-01", "input": 3,    "cacheWrite5m": 3.75,  "cacheWrite1h": 6,    "cacheRead": 0.3,   "output": 15,  "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-haiku-5-5",  "provider": "anthropic", "from": "2026-01-01", "input": 0.1,  "cacheWrite5m": 0.125, "cacheWrite1h": 0.2,  "cacheRead": 0.01,  "output": 0.5, "source": "Anthropic · 2026-11-03" },
+    { "match": "claude-haiku-4",    "provider": "anthropic", "from": "2025-01-01", "input": 1,    "cacheWrite5m": 1.25,  "cacheWrite1h": 2,    "cacheRead": 0.1,   "output": 5,   "source": "Anthropic · 2026-11-03" },
+    { "match": "gpt-",              "provider": "openai",    "from": "2025-01-01", "input": 1.25, "cacheWrite5m": 0,     "cacheWrite1h": 0,    "cacheRead": 0.125, "output": 10,  "source": "placeholder" },
+    { "match": "gemini-",           "provider": "google",    "from": "2025-01-01", "input": 0.5,  "cacheWrite5m": 0,     "cacheWrite1h": 0,    "cacheRead": 0.05,  "output": 3,   "source": "placeholder" }
+  ],
+  "aliases": { "opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "haiku": "claude-haiku-5-5", "fable": "claude-fable-5-2" },
+  "cheaper": { "anthropic": "claude-sonnet-5-5" }
+}

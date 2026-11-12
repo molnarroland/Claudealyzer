@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Claudealyzer
+Comment=A claudealyzer application
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/claudealyzer %u
+Terminal=false
+Type=Application
+Icon=claudealyzer
+Categories=Utility;
+StartupWMClass=claudealyzer
+
+ 

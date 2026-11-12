@@ -1,0 +1,3 @@
+// Spartan Native: loaded after Tailwind and the spartan preset (see angular.json "styles").
+@use '@spartan-native/theme/styles/spartan-native';
+@use '@spartan-native/helm/styles/spartan-native-helm';

@@ -1,0 +1,2 @@
+{"isSidechain":true,"type":"user","message":{"role":"user","content":"fix it"},"timestamp":"2026-11-01T10:02:34.000Z","cwd":"/tmp/demo"}
+{"isSidechain":true,"type":"assistant","message":{"id":"msg_s1","model":"claude-haiku-5-5","role":"assistant","content":[{"type":"text","text":"Fixed."}],"usage":{"input_tokens":10,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5}},"timestamp":"2026-11-01T10:03:30.000Z"}

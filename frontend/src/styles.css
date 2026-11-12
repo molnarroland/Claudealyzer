@@ -1,0 +1,72 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+
+/* Colors, radii and fonts come from @spartan-native/theme (src/theme.scss): it bridges the OS
+   accent, scheme, contrast and text size onto spartan's variables, so none are set here. */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground;
+  }
+}
+
+/* ---------- Claudealyzer tokens ----------
+   Chart series: validated categorical slots 1-4 (light + dark, CVD-checked). These encode data,
+   not UI, so they stay fixed across skins. Every chart ships a value legend, tooltips and a table
+   view. Everything else derives from the theme's --sn-color-* tokens. */
+:root {
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --s4: #eda100;
+  --grid: color-mix(in oklab, var(--sn-color-border) 70%, transparent);
+  --warn: var(--sn-color-warning);
+  --ok: var(--sn-color-success);
+  --crit: var(--sn-color-danger);
+}
+:root.dark {
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body { line-height: 1.5; -webkit-font-smoothing: antialiased; user-select: none; }
+.selectable, pre, code, .mono, input, textarea { user-select: text; }
+.mono { font-family: var(--font-mono); font-size: 0.857em; }
+.tabular { font-variant-numeric: tabular-nums; }
+.cz-label { font-size: 0.75rem; font-weight: 500; letter-spacing: .04em; color: var(--muted-foreground); text-transform: uppercase; }
+/* Agent: a dot in the agent's chart color plus its name in the surrounding text style. */
+.agent-tag { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }
+.agent-dot { width: 0.5em; height: 0.5em; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px color-mix(in oklab, currentColor 25%, transparent); }
+.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.chart-tip { position: absolute; pointer-events: none; z-index: 30; background: var(--popover); color: var(--popover-foreground); border: 1px solid var(--border); border-radius: var(--sn-radius-overlay, 6px); padding: 6px 9px; font-size: 0.8rem; box-shadow: 0 6px 18px -6px rgb(0 0 0 / .25); white-space: nowrap; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.chart-tip .r { display: grid; grid-template-columns: 8px auto auto; gap: 6px; align-items: center; }
+.chart-tip .r i { width: 8px; height: 8px; border-radius: 2px; display: block; }
+pre.out { margin: 0; background: var(--muted); border-radius: var(--sn-radius-control, 8px); padding: 10px 12px; overflow: auto; font: 0.8rem/1.55 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 420px; }
+
+/* Rows of snSelectable lists: secondary text follows currentColor so it stays readable on the accent fill. */
+[data-slot='sn-selectable-item'][data-selected] .sub { color: currentColor; opacity: .8; }
+[data-slot='sn-selectable-item'] { cursor: default; outline: none; }
+
+/* Mac look: the sidebar's top strip moves the window (the title bar only covers the content). */
+.window-strip { --wails-draggable: drag; app-region: drag; }
+.window-strip sn-window-controls { --wails-draggable: no-drag; app-region: no-drag; }
+/* Mac look: the toolbar over the content has no window buttons; they sit in the sidebar's top strip. */
+sn-title-bar.cz-unified > sn-window-controls { display: none; }
+sn-title-bar.cz-unified { flex: none; }
+
+/* Status tones on badges: the theme declares .sn-tone-* in an earlier layer than the skins' badge
+   styles, so a skin's variant fill would win. Re-apply them here, from the same tokens. */
+[data-slot='badge'].sn-tone-success { background: var(--sn-color-success); color: var(--sn-color-success-fg); border-color: transparent; }
+[data-slot='badge'].sn-tone-warning { background: var(--sn-color-warning); color: var(--sn-color-warning-fg); border-color: transparent; }
+[data-slot='badge'].sn-tone-danger { background: var(--sn-color-danger); color: var(--sn-color-danger-fg); border-color: transparent; }

@@ -1,0 +1,5 @@
+{"sessionId":"abcd","projectHash":"x","startTime":"2026-11-01T10:00:00.000Z","kind":"main"}
+{"id":"u1","timestamp":"2026-11-01T10:00:01.000Z","type":"user","content":[{"text":"Fix the test cases"}]}
+{"id":"g1","timestamp":"2026-11-01T10:00:05.000Z","type":"gemini","content":"Running tests.","thoughts":[],"tokens":{"input":1000,"output":20,"cached":400,"thoughts":30,"tool":0,"total":1050},"model":"gemini-3-flash-preview"}
+{"id":"g1","timestamp":"2026-11-01T10:00:05.000Z","type":"gemini","content":"Running tests.","thoughts":[],"tokens":{"input":1000,"output":20,"cached":400,"thoughts":30,"tool":0,"total":1050},"model":"gemini-3-flash-preview","toolCalls":[{"id":"run_1","name":"run_shell_command","args":{"command":"./vendor/bin/pest"},"status":"success","result":[{"functionResponse":{"id":"run_1","name":"run_shell_command","response":{"output":"OK (3 tests)"}}}]}]}
+{"id":"g2","timestamp":"2026-11-01T10:00:09.000Z","type":"gemini","content":"All tests pass.","thoughts":[],"tokens":{"input":1200,"output":10,"cached":1000,"thoughts":0,"tool":0,"total":1210},"model":"gemini-3-flash-preview"}
