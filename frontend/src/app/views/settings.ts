@@ -56,7 +56,8 @@ const SYSTEM = 'system';
             <thead hlmTHead><tr hlmTr><th hlmTh>Name</th><th hlmTh>Agent</th><th hlmTh>Folder</th><th hlmTh>Billing</th><th hlmTh class="text-right">Sessions</th><th hlmTh class="text-right">List price</th><th hlmTh>Status</th><th hlmTh><span class="sr-only">Actions</span></th></tr></thead>
             <tbody hlmTBody>
               @for (s of state.sources(); track s.id) {
-                <tr hlmTr snSelectableItem [value]="s.id" [snSelectableLabel]="s.name" [snContextMenu]="sourceMenu(s)">
+                <!-- snContextMenu sets its own data-slot, which would hide the row from the selection styles: bind it back -->
+                <tr hlmTr snSelectableItem [value]="s.id" [snSelectableLabel]="s.name" [snContextMenu]="sourceMenu(s)" [attr.data-slot]="'sn-selectable-item'">
                   <td hlmTd>{{ s.name }}</td>
                   <td hlmTd><cz-agent [agent]="s.agent" /></td>
                   <td hlmTd class="mono">{{ s.dirShort }}</td>

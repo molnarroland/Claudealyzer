@@ -34,9 +34,10 @@ const key = (s: { sourceId: string; id: string }) => `${s.sourceId}/${s.id}`;
       </div>
     </div>
     <div snSelectable [multiple]="false" [selection]="selection()" (selectionChange)="select($event)" (activated)="analyze($event)"
-      aria-label="Sessions" class="grid min-h-0 content-start gap-px overflow-auto p-2 scroll-thin">
+      aria-label="Sessions" class="grid min-h-0 auto-rows-max content-start gap-px overflow-auto p-2 scroll-thin">
       @for (s of state.sessions(); track key(s)) {
-        <div snSelectableItem [value]="key(s)" [snSelectableLabel]="s.title" [snContextMenu]="menuFor(s)" class="text-[13px]">
+        <!-- snContextMenu sets its own data-slot, which would hide the row from the selection styles: bind it back -->
+        <div snSelectableItem [value]="key(s)" [snSelectableLabel]="s.title" [snContextMenu]="menuFor(s)" [attr.data-slot]="'sn-selectable-item'" class="text-[13px]">
           <!-- the skin lays rows out as a flex line; the two-line content is its own grid -->
           <div class="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-0.5 py-1.5">
           <span class="truncate" [title]="s.title">{{ s.title }}</span>
