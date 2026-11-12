@@ -52,7 +52,7 @@ body { line-height: 1.5; -webkit-font-smoothing: antialiased; user-select: none;
 .chart-tip { position: absolute; pointer-events: none; z-index: 30; background: var(--popover); color: var(--popover-foreground); border: 1px solid var(--border); border-radius: var(--sn-radius-overlay, 6px); padding: 6px 9px; font-size: 0.8rem; box-shadow: 0 6px 18px -6px rgb(0 0 0 / .25); white-space: nowrap; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
 .chart-tip .r { display: grid; grid-template-columns: 8px auto auto; gap: 6px; align-items: center; }
 .chart-tip .r i { width: 8px; height: 8px; border-radius: 2px; display: block; }
-pre.out { margin: 0; background: var(--muted); border-radius: var(--sn-radius-control, 8px); padding: 10px 12px; overflow: auto; font: 0.8rem/1.55 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 420px; }
+pre.out { margin: 0; background: var(--muted); border-radius: var(--sn-radius-surface, 8px); padding: 10px 12px; overflow: auto; font: 0.8rem/1.55 var(--font-mono); white-space: pre-wrap; word-break: break-word; max-height: 420px; }
 
 /* Rows of snSelectable lists: secondary text follows currentColor so it stays readable on the accent fill. */
 [data-slot='sn-selectable-item'][data-selected] .sub { color: currentColor; opacity: .8; }
