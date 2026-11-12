@@ -331,8 +331,10 @@ tasks:
     desc: |
       Builds the Docker image needed for cross-compiling to any platform.
       Run this once to enable cross-platform builds from any OS.
+      Pass ARCH=<arch> (e.g. ARCH=amd64 on Apple Silicon) to build an image for
+      another architecture, needed for cross-arch Linux builds (runs emulated).
     cmds:
-      - docker build -t wails-cross -f build/docker/Dockerfile.cross build/docker/
+      - docker build {{if and .ARCH (ne .ARCH ARCH)}}--platform linux/{{.ARCH}} -t wails-cross-{{.ARCH}}{{else}}-t wails-cross{{end}} -f build/docker/Dockerfile.cross build/docker/
     preconditions:
       - sh: docker info > /dev/null 2>&1
         msg: "Docker is required. Please install Docker first."
