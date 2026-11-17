@@ -3,7 +3,7 @@ module claudealyzer
 go 1.26.0
 
 require (
-	github.com/spartan-native/host-wails v0.0.0-20261112223433-be832a2359c1
+	github.com/spartan-native/host-wails v0.0.0-20261117222719-5766c3f3df4d
 	github.com/wailsapp/wails/v3 v3.1.0
 )
 
