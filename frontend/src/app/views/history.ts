@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
-import { SnContextMenu, SnInspectorImports, SnMenuItem, SnStatusPage } from '@spartan-native/desktop-ui';
-import { SnDialogActionsImports, SnSelectableImports } from '@spartan-native/helm';
+import { SnInspectorImports, SnStatusPage } from '@spartan-native/desktop-ui';
+import { SnDialogActionsImports } from '@spartan-native/helm';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -9,89 +9,13 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HistoryService, core, m } from '../lib/api';
-import { AGENTS, ctx, errText, fmtD, fmtT, fmtUSD, fmtWhen, shortModel, total } from '../lib/format';
+import { AGENTS, ctx, errText, fmtD, fmtT, fmtUSD, shortModel, total } from '../lib/format';
 import { AppState } from '../lib/state';
-import { AgentTag, FindingsList, Kpi, Segmented, TONE, TokenBreakdown } from './shared';
+import { AgentTag, FindingsList, Segmented, TONE, TokenBreakdown } from './shared';
 
 const KIND_LABEL: Record<string, string> = {
   thinking: 'thinking', text: 'note', shell: 'shell', read: 'read', edit: 'edit', search: 'search', agent: 'agent', tool: 'tool', system: 'system',
 };
-
-const key = (s: { sourceId: string; id: string }) => `${s.sourceId}/${s.id}`;
-
-// ---------- sessions column ----------
-
-@Component({
-  selector: 'cz-sessions',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SnSelectableImports, SnContextMenu, AgentTag, Segmented],
-  host: { class: 'flex min-h-0 flex-col border-r' },
-  template: `
-    <div class="grid gap-2 border-b p-3">
-      <div class="flex items-center justify-between gap-2">
-        <b class="truncate text-[13px]" [title]="state.project()?.path ?? ''">Sessions <span class="font-normal text-muted-foreground">{{ state.sessions().length }}</span></b>
-        <cz-segmented label="Sort sessions" [options]="tabs" [value]="state.sessionSort()" (valueChange)="state.setSort($event)" />
-      </div>
-    </div>
-    <div snSelectable [multiple]="false" [selection]="selection()" (selectionChange)="select($event)" (activated)="analyze($event)"
-      aria-label="Sessions" class="grid min-h-0 auto-rows-max content-start gap-px overflow-auto p-2 scroll-thin">
-      @for (s of state.sessions(); track key(s)) {
-        <!-- snContextMenu sets its own data-slot, which would hide the row from the selection styles: bind it back -->
-        <div snSelectableItem [value]="key(s)" [snSelectableLabel]="s.title" [snContextMenu]="menuFor(s)" [attr.data-slot]="'sn-selectable-item'" class="text-[13px]">
-          <!-- the skin lays rows out as a flex line; the two-line content is its own grid -->
-          <div class="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-2 gap-y-0.5 py-1.5">
-          <span class="truncate" [title]="s.title">{{ s.title }}</span>
-          <span class="sub tabular text-xs text-muted-foreground">{{ s.noUsageData ? '—' : fmtUSD(s.usage.costUSD) }}</span>
-          <span class="sub col-span-2 flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap text-[11px] text-muted-foreground">
-            <cz-agent [agent]="s.agent" />·
-            <span class="truncate">{{ fmtWhen(s.endedAt || s.startedAt) }} · {{ s.turnCount }} turn{{ s.turnCount === 1 ? '' : 's' }}{{ s.subagentCount ? ' · ' + s.subagentCount + ' agents' : '' }}</span>
-            @if (s.findingsHigh) {
-              <span class="size-1.5 shrink-0 rounded-full bg-[var(--crit)]" [title]="s.findingsHigh + ' high findings'"></span>
-            }
-          </span>
-          </div>
-        </div>
-      } @empty {
-        <p class="px-2 text-[13px] text-muted-foreground">No sessions.</p>
-      }
-    </div>
-  `,
-})
-export class SessionsColumn {
-  protected readonly state = inject(AppState);
-  protected readonly fmtUSD = fmtUSD;
-  protected readonly fmtWhen = fmtWhen;
-  protected readonly key = key;
-  protected readonly tabs = [
-    { id: 'recent' as const, label: 'Recent' },
-    { id: 'cost' as const, label: 'Cost' },
-  ];
-  readonly selection = computed(() => {
-    const c = this.state.current();
-    return c ? [key(c)] : [];
-  });
-
-  select(keys: readonly string[]): void {
-    const s = this.state.sessions().find((x) => key(x) === keys[0]);
-    const c = this.state.current();
-    if (s && (!c || key(c) !== keys[0] || this.state.subagentId())) void this.state.openSession(s.sourceId, s.id);
-  }
-  /** Enter or double-click: open the session's analysis. */
-  analyze(k: string): void {
-    const s = this.state.sessions().find((x) => key(x) === k);
-    if (s) void this.state.openSession(s.sourceId, s.id).then(() => this.state.go('analysis'));
-  }
-  menuFor(s: core.SessionRow): SnMenuItem[] {
-    const open = (then?: () => void) => () => void this.state.openSession(s.sourceId, s.id).then(then);
-    return [
-      { id: 'open', label: 'Open', action: open(() => this.state.go('history')) },
-      { id: 'analyze', label: 'Session analysis', action: open(() => this.state.go('analysis')) },
-      { id: 'costs', label: 'Cost explained', action: open(() => this.state.go('costs')) },
-      { type: 'separator' },
-      { id: 'copy-id', label: 'Copy session ID', action: () => void navigator.clipboard.writeText(s.id) },
-    ];
-  }
-}
 
 // ---------- chat ----------
 
@@ -197,7 +121,7 @@ export class SessionsColumn {
             }
           </div>
         } @empty {
-          <sn-status-page icon="lucideMessagesSquare" title="No session open" description="Pick a project in the sidebar, then a session from the list." />
+          <sn-status-page icon="lucideMessagesSquare" title="No session open" description="Pick a session from a project in the sidebar." />
         }
       }
     </div>
@@ -492,14 +416,11 @@ export class StepSheet {
 @Component({
   selector: 'cz-history',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SnInspectorImports, SessionsColumn, Chat, Panel, StepSheet],
+  imports: [SnInspectorImports, Chat, Panel, StepSheet],
   host: { class: 'grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)]' },
   template: `
     <sn-inspector-layout class="h-full">
-      <div class="grid min-h-0 min-w-0 flex-1 grid-cols-[16rem_minmax(0,1fr)]">
-        <cz-sessions />
-        <cz-chat />
-      </div>
+      <cz-chat class="flex-1" />
       <sn-inspector [title]="inspectorTitle()" [open]="state.panelOpen()" (openChange)="state.panelOpen.set($event)" style="inline-size: 21rem">
         <cz-panel />
       </sn-inspector>

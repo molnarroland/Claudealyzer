@@ -26,6 +26,8 @@ export class AppState {
   readonly projects = signal<core.Project[]>([]);
   readonly projectKey = signal<string | null>(null);
   readonly sessions = signal<core.SessionRow[]>([]);
+  /** Sessions of every project opened in the sidebar tree, by project key (the selected one included). */
+  readonly projectSessions = signal<Record<string, core.SessionRow[]>>({});
   readonly sessionSort = signal<'recent' | 'cost'>('recent');
   readonly current = signal<{ sourceId: string; id: string } | null>(null);
   readonly detail = signal<core.SessionDetail | null>(null);
@@ -127,7 +129,23 @@ export class AppState {
     if (!this.projectKey() || !ps.some((p) => p.key === this.projectKey())) {
       this.projectKey.set(ps[0]?.key ?? null);
     }
-    await this.loadSessions();
+    await this.reloadProjectSessions();
+  }
+
+  /** Reloads the sessions of every project already loaded in the tree, plus the selected one. */
+  private async reloadProjectSessions(): Promise<void> {
+    const keys = new Set(Object.keys(this.projectSessions()).filter((k) => this.projects().some((p) => p.key === k)));
+    this.projectSessions.set({});
+    const sel = this.projectKey();
+    if (sel != null) keys.delete(sel);
+    await Promise.all([this.loadSessions(), ...[...keys].map((k) => this.loadProjectSessions(k))]);
+  }
+
+  /** Loads one project's sessions into the tree (on expanding it), with the current filters and sort. */
+  async loadProjectSessions(key: string): Promise<core.SessionRow[]> {
+    const rows = (await HistoryService.Sessions(key, this.sourceId(), this.agent(), this.sessionSort())) ?? [];
+    this.projectSessions.update((m) => ({ ...m, [key]: rows }));
+    return rows;
   }
 
   async loadSessions(): Promise<void> {
@@ -136,7 +154,8 @@ export class AppState {
       this.sessions.set([]);
       return;
     }
-    this.sessions.set((await HistoryService.Sessions(key, this.sourceId(), this.agent(), this.sessionSort())) ?? []);
+    const rows = await this.loadProjectSessions(key);
+    if (key === this.projectKey()) this.sessions.set(rows);
   }
 
   async selectSource(id: string): Promise<void> {
@@ -166,7 +185,7 @@ export class AppState {
 
   async setSort(s: 'recent' | 'cost'): Promise<void> {
     this.sessionSort.set(s);
-    await this.loadSessions();
+    await this.reloadProjectSessions();
   }
 
   async openSession(sourceId: string, id: string, keepScope = false): Promise<void> {
@@ -216,13 +235,13 @@ export class AppState {
     else go();
   }
 
-  /** Open a session from a list outside History (Overview, Calendar), optionally at a turn. */
-  async openFrom(projectKey: string, sourceId: string, id: string, turn: number | null = null): Promise<void> {
+  /** Open a session of any project (Overview, Calendar, the sidebar tree), optionally at a turn; `show` switches to History. */
+  async openFrom(projectKey: string, sourceId: string, id: string, turn: number | null = null, show = true): Promise<void> {
     if (projectKey !== this.projectKey()) {
       this.projectKey.set(projectKey);
       void this.loadSessions();
     }
-    this.view.set('history');
+    if (show) this.view.set('history');
     await this.openSession(sourceId, id);
     if (turn != null) this.goTurn(turn);
   }
