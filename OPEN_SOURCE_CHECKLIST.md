@@ -52,7 +52,7 @@ community files → first tagged release → enable Pages.
 - [ ] Only 5 Go test files and no frontend tests. Add parser tests for each adapter that run on small
       fake transcripts under `testdata/`, so new adapters can copy the pattern and agent format changes
       are caught early.
-- [ ] Add the screenshot mock-data generator (`gen_mock.py`) and the Playwright scripts under
+- [x] Add the screenshot mock-data generator (`gen_mock.py`) and the Playwright scripts under
       `scripts/screenshots/`, so screenshots can be remade after UI changes. The generator can also
       produce the test fixtures.
 - [ ] Lint: `golangci-lint`, plus ESLint or Prettier for the frontend.

@@ -161,7 +161,8 @@ Enable it under *Settings → Pages → Deploy from a branch → `main` / `docs`
 every GitHub link on the site is set once, in `window.REPO` at the top of `docs/index.html`.
 
 Screenshots in `docs/images/` are made from the real app running against generated demo data (a made-up
-user and projects), never from real transcripts.
+user and projects), never from real transcripts. Remake all of them after a UI change with
+`scripts/screenshots/run.sh`; see [scripts/screenshots/README.md](scripts/screenshots/README.md).
 
 ## Updating prices
 

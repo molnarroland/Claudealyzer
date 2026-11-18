@@ -1,0 +1,12 @@
+{
+  "name": "claudealyzer-screenshots",
+  "private": true,
+  "description": "Remakes the docs/ screenshots from demo data. See README.md.",
+  "type": "module",
+  "scripts": {
+    "shots": "./run.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  }
+}
