@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- The .dmg file's icon: a disk with the app mark on top. Glyph copied from ../appicon.svg. -->
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2d3e82"/><stop offset="1" stop-color="#18214a"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9ecf5"/><stop offset="1" stop-color="#aab0c8"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <!-- body (front edge) -->
+    <rect x="92" y="196" width="840" height="680" rx="120" fill="url(#side)"/>
+    <!-- top face -->
+    <rect x="92" y="148" width="840" height="620" rx="120" fill="url(#top)"/>
+    <rect x="92" y="148" width="840" height="620" rx="120" fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="6"/>
+  </g>
+  <!-- front: vent slots and LED -->
+  <g fill="#5d6481" opacity=".75">
+    <rect x="200" y="806" width="16" height="44" rx="8"/><rect x="236" y="806" width="16" height="44" rx="8"/>
+    <rect x="272" y="806" width="16" height="44" rx="8"/><rect x="308" y="806" width="16" height="44" rx="8"/>
+    <rect x="344" y="806" width="16" height="44" rx="8"/>
+  </g>
+  <circle cx="824" cy="828" r="13" fill="#1baf7a"/>
+  <!-- app mark -->
+  <svg x="252" y="198" width="520" height="520" viewBox="0 0 1024 1024">
+  <!-- Claudealyzer: "Where are my tokens?" A magnifier watching coding agents, token coins scattered around. -->
+  <defs>
+    <clipPath id="lens"><circle cx="430" cy="430" r="206"/></clipPath>
+    <radialGradient id="glass" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".34"/>
+      <stop offset=".6" stop-color="#cfe6ff" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#9cc8ff" stop-opacity=".22"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c9cde0"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4f5fb"/><stop offset="1" stop-color="#a9aec6"/>
+    </linearGradient>
+    <radialGradient id="coin" cx="35%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#ffd76a"/><stop offset="1" stop-color="#e09a00"/>
+    </radialGradient>
+    <g id="bot">
+      <!-- a generic agent: head, antenna, two eyes; 200 x 200 box, origin top-left -->
+      <line x1="100" y1="46" x2="100" y2="14" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="100" cy="12" r="15" fill="currentColor"/>
+      <rect x="10" y="46" width="180" height="150" rx="46" fill="currentColor"/>
+      <rect x="34" y="78" width="132" height="76" rx="34" fill="#0f1830" opacity=".9"/>
+      <circle cx="74" cy="116" r="16" fill="#ffffff"/>
+      <circle cx="126" cy="116" r="16" fill="#ffffff"/>
+    </g>
+    <g id="token">
+      <circle r="44" fill="url(#coin)"/>
+      <circle r="31" fill="none" stroke="#a86f00" stroke-width="6" opacity=".7"/>
+      <path d="M-14 -12 h28 M0 -12 v28" stroke="#8a5a00" stroke-width="8" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <!-- agents outside the lens -->
+  <use href="#bot" x="128" y="660" style="color:#3987e5"/>
+  <use href="#bot" x="690" y="150" style="color:#eb6834"/>
+
+  <!-- tokens drifting away -->
+  <use href="#token" x="790" y="470"/>
+  <use href="#token" x="880" y="600" transform="translate(880 600) scale(.7) translate(-880 -600)"/>
+  <use href="#token" x="212" y="196" transform="translate(212 196) scale(.8) translate(-212 -196)"/>
+  <use href="#token" x="432" y="860" transform="translate(432 860) scale(.6) translate(-432 -860)"/>
+
+  <!-- the magnifier: handle, then the lens with a magnified agent watching back -->
+  <line x1="600" y1="600" x2="812" y2="812" stroke="url(#handle)" stroke-width="96" stroke-linecap="round"/>
+  <line x1="586" y1="586" x2="636" y2="636" stroke="#7d84a3" stroke-width="112" stroke-linecap="butt"/>
+  <g clip-path="url(#lens)">
+    <circle cx="430" cy="430" r="206" fill="#14204a"/>
+    <g transform="translate(430 448) scale(1.55) translate(-100 -110)" style="color:#1baf7a">
+      <use href="#bot"/>
+      <!-- pupils looking up-right, toward the viewer through the glass -->
+      <circle cx="79" cy="111" r="7" fill="#0f1830"/>
+      <circle cx="131" cy="111" r="7" fill="#0f1830"/>
+    </g>
+    <circle cx="430" cy="430" r="206" fill="url(#glass)"/>
+    <path d="M300 300 A170 170 0 0 1 452 262" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round" opacity=".55"/>
+  </g>
+  <circle cx="430" cy="430" r="230" fill="none" stroke="url(#ring)" stroke-width="48"/>
+</svg>
+</svg>

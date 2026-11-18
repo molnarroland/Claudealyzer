@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/history.png" alt="Claudealyzer: session history with usage and insights panel" width="900">
+  <img src="docs/images/history.webp" alt="Claudealyzer: session history with usage and insights panel" width="900">
 </p>
 
 ---

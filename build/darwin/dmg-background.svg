@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 380" width="540" height="380">
+  <!-- DMG window background. Wails places the app icon at (151,164) and Applications at (388,164), centers. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f8fd"/><stop offset="1" stop-color="#e3e8f6"/>
+    </linearGradient>
+    <radialGradient id="coin" cx="35%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#ffd76a"/><stop offset="1" stop-color="#e09a00"/>
+    </radialGradient>
+    <g id="token">
+      <circle r="44" fill="url(#coin)"/>
+      <circle r="31" fill="none" stroke="#a86f00" stroke-width="6" opacity=".7"/>
+      <path d="M-14 -12 h28 M0 -12 v28" stroke="#8a5a00" stroke-width="8" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <rect width="540" height="380" fill="url(#bg)"/>
+  <rect y="0" width="540" height="4" fill="#2a3a78"/>
+
+  <text x="270" y="58" text-anchor="middle" font-family="-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif"
+        font-size="26" font-weight="700" fill="#1c2756" letter-spacing="-.3">Claudealyzer</text>
+  <text x="270" y="80" text-anchor="middle" font-family="-apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif"
+        font-size="12.5" fill="#5b6488">Where are my tokens?</text>
+
+  <!-- arrow from the app to Applications -->
+  <path d="M222 164 H306" fill="none" stroke="#2a3a78" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 10" opacity=".55"/>
+  <path d="M306 152 L320 164 L306 176" fill="none" stroke="#2a3a78" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+
+  <text x="270" y="300" text-anchor="middle" font-family="-apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif"
+        font-size="13" fill="#3b4570">Drag Claudealyzer to Applications to install</text>
+
+  <!-- a few stray tokens -->
+  <use href="#token" transform="translate(48 330) scale(.22)"/>
+  <use href="#token" transform="translate(498 64) scale(.17)"/>
+  <use href="#token" transform="translate(470 342) scale(.13)"/>
+  <use href="#token" transform="translate(70 96) scale(.11)"/>
+</svg>

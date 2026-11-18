@@ -5,12 +5,12 @@ document.querySelectorAll('[data-repo]').forEach((a) => {
 
 // Hero screenshot switcher (OS × color scheme).
 const HERO = {
-  'mac-light': 'images/history.png',
-  'mac-dark': 'images/history-dark.png',
-  'win-light': 'images/windows-history.png',
-  'win-dark': 'images/windows-overview-dark.png',
-  'linux-light': 'images/linux-history.png',
-  'linux-dark': 'images/linux-history-dark.png',
+  'mac-light': 'images/history.webp',
+  'mac-dark': 'images/history-dark.webp',
+  'win-light': 'images/windows-history.webp',
+  'win-dark': 'images/windows-overview-dark.webp',
+  'linux-light': 'images/linux-history.webp',
+  'linux-dark': 'images/linux-history-dark.webp',
 };
 const state = {
   os: /Windows/.test(navigator.userAgent) ? 'win' : /Linux|X11|CrOS/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent) ? 'linux' : 'mac',
