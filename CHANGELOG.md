@@ -7,7 +7,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-11-12
+## [0.1.1] - 2026-11-18
+
+### Changed
+
+- Sessions now live in the sidebar as a project tree: projects are folders, their sessions are leaves. Sessions
+  load when a project is expanded and reload together when the sort or filters change. The separate sessions
+  column in History is gone.
+- Spartan Native updated to 0.2.1, now pulled from npm and GitHub instead of vendored tarballs.
+- Website and README screenshots converted to WebP and remade to show the new sidebar tree.
+- Smaller macOS DMG background and file icon, with SVG sources added.
+
+### Added
+
+- Screenshot tooling in `scripts/screenshots/`: generates mock Claude Code, Codex and Gemini history, drives the
+  app with Playwright and writes WebP to `docs/images`. Fails if a real filesystem path shows up in the UI.
+
+## [0.1.0] - 2026-11-12
 
 First public release.
 
@@ -29,5 +45,6 @@ First public release.
 - Session list selection highlight and row overlap.
 - Output preview rendering as an ellipse on pill-radius skins.
 
-[Unreleased]: https://github.com/molnarroland/Claudealyzer/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/molnarroland/Claudealyzer/releases/tag/v0.2.0
+[Unreleased]: https://github.com/molnarroland/Claudealyzer/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/molnarroland/Claudealyzer/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/molnarroland/Claudealyzer/releases/tag/v0.1.0
