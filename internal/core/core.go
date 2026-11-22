@@ -19,12 +19,13 @@ import (
 	_ "claudealyzer/internal/adapters/claude"
 	_ "claudealyzer/internal/adapters/codex"
 	_ "claudealyzer/internal/adapters/gemini"
+	_ "claudealyzer/internal/adapters/opencode"
 	"claudealyzer/internal/insight"
 	"claudealyzer/internal/model"
 	"claudealyzer/internal/pricing"
 )
 
-const indexVersion = 5
+const indexVersion = 6
 
 type entry struct {
 	Size  int64                `json:"size"`
@@ -57,7 +58,12 @@ type Core struct {
 	emit   Emitter
 	scanMu sync.Mutex
 	status ScanStatus
+	search searchIndex
+	alerts alertState
+	notify Notifier
 }
+
+var errNotFound = errors.New("session not found")
 
 type ScanStatus struct {
 	Running bool   `json:"running"`
@@ -223,7 +229,9 @@ func (c *Core) Scan(ctx context.Context) []string {
 					e.Sum = model.SessionSummary{ID: j.f.ID, SourceID: j.src.ID, Agent: j.src.Agent, Path: j.f.Path, Title: "Unreadable session", Warnings: []string{err.Error()}}
 				} else {
 					s.SourceID = j.src.ID
-					s.FindingsHigh, s.FindingsMed = insight.Count(insight.Group(insight.Session(s, th)))
+					fs := insight.Session(s, th)
+					s.FindingsHigh, s.FindingsMed = insight.Count(insight.Group(fs))
+					s.Rules = insight.Rules(fs)
 					e.Sum = s.SessionSummary
 				}
 				c.mu.Lock()
@@ -268,14 +276,17 @@ func (c *Core) Scan(ctx context.Context) []string {
 func (c *Core) Watch(ctx context.Context, every time.Duration) {
 	t := time.NewTicker(every)
 	defer t.Stop()
+	c.CheckAlerts(nil)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			if ch := c.Scan(ctx); len(ch) > 0 {
+			ch := c.Scan(ctx)
+			if len(ch) > 0 {
 				c.emit("session:updated", ch)
 			}
+			c.CheckAlerts(ch)
 		}
 	}
 }
@@ -307,6 +318,7 @@ func (c *Core) Load(sourceID, id string) (*model.Session, []insight.Finding, err
 	}
 	fs := insight.Session(s, c.cfg.conf.Thresholds)
 	s.FindingsHigh, s.FindingsMed = insight.Count(insight.Group(fs))
+	s.Rules = insight.Rules(fs)
 	c.mu.Lock()
 	c.cache = append([]loaded{{key, s, fs}}, c.cache...)
 	if len(c.cache) > 6 {
@@ -323,7 +335,7 @@ func (c *Core) parse(sourceID, id string) (*model.Session, error) {
 	c.mu.RUnlock()
 	src, ok := c.source(sourceID)
 	if !ok || e == nil {
-		return nil, errors.New("session not found")
+		return nil, errNotFound
 	}
 	ad, ok := adapters.Get(src.Agent)
 	if !ok {
@@ -337,7 +349,7 @@ func (c *Core) parse(sourceID, id string) (*model.Session, error) {
 	return s, nil
 }
 
-func (c *Core) summaries(sourceID string, agent string) []model.SessionSummary {
+func (c *Core) summaries(sourceID string, agent string, f Filter) []model.SessionSummary {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	all := sourceID == "" || sourceID == "all"
@@ -356,6 +368,9 @@ func (c *Core) summaries(sourceID string, agent string) []model.SessionSummary {
 			if e.Sum.TurnCount == 0 && e.Err == "" {
 				continue // empty sessions (e.g. only /clear)
 			}
+			if !f.match(&e.Sum) {
+				continue
+			}
 			if all {
 				key := string(e.Sum.Agent) + "/" + e.Sum.ID
 				if i, ok := seen[key]; ok {
@@ -372,6 +387,8 @@ func (c *Core) summaries(sourceID string, agent string) []model.SessionSummary {
 	}
 	return out
 }
+
+func dayOf(ms int64) string { return time.UnixMilli(ms).Local().Format("2006-01-02") }
 
 func projectName(key string) string {
 	if strings.HasPrefix(key, "gemini:") {

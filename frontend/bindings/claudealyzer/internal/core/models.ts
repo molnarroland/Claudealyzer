@@ -11,6 +11,49 @@ import * as model$0 from "../model/models.js";
 // @ts-ignore: Unused imports
 import * as pricing$0 from "../pricing/models.js";
 
+/**
+ * Alert is one notice about spending, shown in the app and optionally as an OS notification.
+ */
+export interface Alert {
+    "id": string;
+
+    /**
+     * budget | limit | session
+     */
+    "kind": string;
+
+    /**
+     * warn | over
+     */
+    "level": string;
+    "title": string;
+    "body": string;
+    "at": number;
+    "sourceId": string;
+    "sessionId": string;
+    "projectKey": string;
+}
+
+/**
+ * AlertSettings controls when the app tells you about spending.
+ */
+export interface AlertSettings {
+    /**
+     * send OS notifications (in-app alerts are always shown)
+     */
+    "notify": boolean;
+
+    /**
+     * budgets and limits warn at this share of the limit
+     */
+    "warnPct": number;
+
+    /**
+     * alert when one session's list price crosses this; 0 = off
+     */
+    "sessionUSD": number;
+}
+
 export interface Analysis {
     "title": string;
     "agent": model$0.Agent;
@@ -57,6 +100,94 @@ export interface Billing {
      * free-text label, e.g. "Max"
      */
     "plan": string;
+
+    /**
+     * Usage limits, entered by the user as API list price (plans don't publish them in dollars).
+     * 0 = not set.
+     * per 5-hour window
+     */
+    "limit5hUSD": number;
+
+    /**
+     * per week
+     */
+    "limitWeekUSD": number;
+
+    /**
+     * 0 = rolling 7 days, 1–7 = Monday–Sunday at 00:00
+     */
+    "weekResetDay": number;
+}
+
+export interface BlockPoint {
+    "start": number;
+    "spent": number;
+}
+
+/**
+ * Budget is a spending limit for a scope and period.
+ */
+export interface Budget {
+    "id": string;
+    "name": string;
+
+    /**
+     * "" = all sources
+     */
+    "sourceId": string;
+
+    /**
+     * "" = every project
+     */
+    "projectKey": string;
+
+    /**
+     * day | week | month
+     */
+    "period": string;
+    "limitUSD": number;
+
+    /**
+     * list | paid
+     */
+    "basis": string;
+    "notify": boolean;
+}
+
+export interface BudgetDay {
+    "date": string;
+    "spent": number;
+}
+
+/**
+ * BudgetStatus is a budget with its spending in the current period.
+ */
+export interface BudgetStatus {
+    "budget": Budget;
+
+    /**
+     * readable scope
+     */
+    "scope": string;
+    "periodStart": string;
+
+    /**
+     * exclusive
+     */
+    "periodEnd": string;
+    "spent": number;
+    "pct": number;
+
+    /**
+     * at the end of the period, at the pace so far
+     */
+    "projected": number;
+
+    /**
+     * ok | warn | over
+     */
+    "level": string;
+    "days": BudgetDay[] | null;
 }
 
 export interface Calendar {
@@ -110,6 +241,15 @@ export interface CommandRow {
     "stepId": string;
     "category": string;
     "failures": number;
+}
+
+export interface Comparison {
+    /**
+     * sessions | periods
+     */
+    "kind": string;
+    "a": Stats;
+    "b": Stats;
 }
 
 export interface CostReport {
@@ -216,6 +356,22 @@ export interface DaySession {
      * YYYY-MM-DD -> prompts and usage (subagents included)
      */
     "days": { [_ in string]?: model$0.DayStat } | null;
+
+    /**
+     * Hourly is list price per local clock hour (unix seconds of the hour start), subagents included.
+     * It feeds the 5-hour and weekly usage windows.
+     */
+    "hourly": { [_ in `${number}`]?: number } | null;
+
+    /**
+     * Rules counts this session's findings per insight rule (severity ok left out).
+     */
+    "rules": { [_ in string]?: model$0.RuleStat } | null;
+
+    /**
+     * EditedFiles counts edit steps per file (subagents included, the most edited files only).
+     */
+    "editedFiles": { [_ in string]?: number } | null;
     "findingsHigh": number;
     "findingsMed": number;
     "rateLimitPct": number | null;
@@ -261,11 +417,34 @@ export interface Effective {
     "share": number;
 }
 
+export interface FileCount {
+    "path": string;
+    "edits": number;
+    "sessions": number;
+}
+
 export interface FileRow {
     "path": string;
     "reads": number;
     "tokens": number;
     "resentUSD": number;
+}
+
+/**
+ * Filter narrows the sessions every list and report works on.
+ * The zero value matches everything.
+ */
+export interface Filter {
+    /**
+     * Model keeps sessions that used this model (exact id, or a prefix such as "claude-opus").
+     */
+    "model": string;
+
+    /**
+     * From and To (YYYY-MM-DD, both inclusive, "" = open) keep sessions with activity on those days.
+     */
+    "from": string;
+    "to": string;
 }
 
 export interface FormulaRow {
@@ -278,6 +457,21 @@ export interface FormulaRow {
      */
     "rate": number;
     "cost": number;
+}
+
+export interface ModelCost {
+    "model": string;
+    "costUSD": number;
+    "tokens": number;
+}
+
+/**
+ * ModelInfo is one model seen in the history, for the model filter.
+ */
+export interface ModelInfo {
+    "model": string;
+    "sessions": number;
+    "costUSD": number;
 }
 
 export interface Overview {
@@ -329,6 +523,84 @@ export interface Project {
     "unpriced": boolean;
 }
 
+export interface ProjectReport {
+    "key": string;
+    "name": string;
+    "path": string;
+    "agents": string[] | null;
+    "sessions": number;
+    "prompts": number;
+    "usage": model$0.Usage;
+    "effective": number;
+    "hasUnset": boolean;
+    "firstActive": number;
+    "lastActive": number;
+    "activeDays": number;
+    "avgUSD": number;
+    "cacheHit": number;
+    "highSessions": number;
+    "days": DayRow[] | null;
+    "weeks": WeekRow[] | null;
+    "topSessions": SessionRow[] | null;
+    "files": FileCount[] | null;
+    "rules": RuleRow[] | null;
+    "models": ModelCost[] | null;
+}
+
+/**
+ * RuleRow is one insight rule summed over many sessions.
+ */
+export interface RuleRow {
+    "rule": string;
+    "title": string;
+
+    /**
+     * sessions where it fired
+     */
+    "sessions": number;
+    "findings": number;
+    "high": number;
+    "impactUSD": number;
+
+    /**
+     * of the sessions in scope
+     */
+    "share": number;
+}
+
+export interface RuleTrend {
+    "rule": string;
+    "title": string;
+
+    /**
+     * sessions where it fired, per week
+     */
+    "counts": number[] | null;
+
+    /**
+     * of that week's sessions
+     */
+    "shares": number[] | null;
+    "impact": number[] | null;
+    "total": number;
+    "impactUSD": number;
+
+    /**
+     * share over the last 4 weeks
+     */
+    "recent": number;
+
+    /**
+     * share over the 4 weeks before
+     */
+    "before": number;
+
+    /**
+     * better | worse | steady | new | none
+     */
+    "trend": string;
+}
+
 export interface ScanStatus {
     "running": boolean;
     "done": number;
@@ -342,6 +614,53 @@ export interface Scenario {
     "note": string;
     "cost": number;
     "highlight": boolean;
+}
+
+/**
+ * SearchGroup is one session with its hits.
+ */
+export interface SearchGroup {
+    "sourceId": string;
+    "sessionId": string;
+    "projectKey": string;
+    "project": string;
+    "title": string;
+    "agent": model$0.Agent;
+    "endedAt": number;
+    "costUSD": number;
+
+    /**
+     * every hit in the session; Hits is capped
+     */
+    "total": number;
+    "hits": SearchHit[] | null;
+}
+
+/**
+ * SearchHit is one matching prompt, answer or step.
+ */
+export interface SearchHit {
+    "kind": string;
+    "turn": number;
+    "stepId": string;
+    "at": number;
+    "snippet": string;
+
+    /**
+     * Byte offsets of the first match inside Snippet, for highlighting.
+     */
+    "matchStart": number;
+    "matchEnd": number;
+}
+
+export interface SearchResult {
+    "query": string;
+    "groups": SearchGroup[] | null;
+    "hits": number;
+    "searched": number;
+    "failed": number;
+    "truncated": boolean;
+    "ms": number;
 }
 
 export interface SessionDetail {
@@ -394,6 +713,22 @@ export interface SessionRow {
      * YYYY-MM-DD -> prompts and usage (subagents included)
      */
     "days": { [_ in string]?: model$0.DayStat } | null;
+
+    /**
+     * Hourly is list price per local clock hour (unix seconds of the hour start), subagents included.
+     * It feeds the 5-hour and weekly usage windows.
+     */
+    "hourly": { [_ in `${number}`]?: number } | null;
+
+    /**
+     * Rules counts this session's findings per insight rule (severity ok left out).
+     */
+    "rules": { [_ in string]?: model$0.RuleStat } | null;
+
+    /**
+     * EditedFiles counts edit steps per file (subagents included, the most edited files only).
+     */
+    "editedFiles": { [_ in string]?: number } | null;
     "findingsHigh": number;
     "findingsMed": number;
     "rateLimitPct": number | null;
@@ -428,6 +763,71 @@ export interface SourceInfo {
     "supported": boolean;
 }
 
+export interface SourceLimits {
+    "sourceId": string;
+    "name": string;
+    "agent": model$0.Agent;
+    "billing": Billing;
+
+    /**
+     * the running 5-hour window, nil when idle
+     */
+    "block": UsageWindow | null;
+    "lastBlock": UsageWindow | null;
+    "maxBlock": number;
+    "avgBlock": number;
+
+    /**
+     * the most recent windows, oldest first
+     */
+    "blocks": BlockPoint[] | null;
+    "week": UsageWindow;
+    "prevWeek": number;
+    "maxWeek": number;
+
+    /**
+     * last value the agent itself reported (Codex)
+     */
+    "rateLimitPct": number | null;
+    "rateLimitAt": number;
+}
+
+/**
+ * Stats describes a session or a period, so two of them can be put side by side.
+ */
+export interface Stats {
+    "label": string;
+    "sub": string;
+    "from": string;
+    "to": string;
+    "sessions": number;
+    "prompts": number;
+    "turns": number;
+    "subagents": number;
+    "usage": model$0.Usage;
+    "effective": number;
+
+    /**
+     * per session
+     */
+    "avgUSD": number;
+    "perPrompt": number;
+    "cacheHit": number;
+
+    /**
+     * highest
+     */
+    "peakContext": number;
+    "avgPeak": number;
+    "wallMs": number;
+    "subagentUSD": number;
+    "findingsHigh": number;
+    "findingsMed": number;
+    "rules": RuleRow[] | null;
+    "byModel": { [_ in string]?: number } | null;
+    "byAgent": { [_ in string]?: number } | null;
+}
+
 export interface StepDetail {
     "step": model$0.Step;
     "turn": number;
@@ -448,6 +848,28 @@ export interface TimeBucket {
     "ms": number;
 }
 
+export interface TrendReport {
+    "title": string;
+
+    /**
+     * Mondays
+     */
+    "weeks": string[] | null;
+    "sessions": number[] | null;
+    "costUSD": number[] | null;
+
+    /**
+     * estimated impact of all findings, per week
+     */
+    "impact": number[] | null;
+
+    /**
+     * share of sessions with a high or medium finding
+     */
+    "flagged": number[] | null;
+    "rules": RuleTrend[] | null;
+}
+
 export interface TurnBar {
     "turn": number;
     "prompt": string;
@@ -458,4 +880,29 @@ export interface TurnBar {
     "total": number;
     "peak": number;
     "durationMs": number;
+}
+
+/**
+ * UsageWindow is spending inside one usage window. Times are Unix ms.
+ */
+export interface UsageWindow {
+    "start": number;
+    "end": number;
+    "spent": number;
+    "limit": number;
+    "pct": number;
+    "projected": number;
+    "burnPerHour": number;
+    "active": boolean;
+    "level": string;
+}
+
+export interface WeekRow {
+    /**
+     * Monday, YYYY-MM-DD
+     */
+    "week": string;
+    "costUSD": number;
+    "sessions": number;
+    "prompts": number;
 }

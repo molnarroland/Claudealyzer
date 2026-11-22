@@ -12,6 +12,7 @@ import type * as core$0 from "../../../../../claudealyzer/internal/core/models.j
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
+            "alert": core$0.Alert;
             "index:updated": core$0.ScanStatus;
             "scan:progress": core$0.ScanStatus;
             "session:updated": string[] | null;

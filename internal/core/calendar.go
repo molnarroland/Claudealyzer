@@ -97,9 +97,9 @@ func (c *Core) scopeTitle(projectKey, sourceID string) string {
 	return "All sources"
 }
 
-func (c *Core) scoped(projectKey, sourceID, agent string) []model.SessionSummary {
+func (c *Core) scoped(projectKey, sourceID, agent string, f Filter) []model.SessionSummary {
 	var out []model.SessionSummary
-	for _, s := range c.summaries(sourceID, agent) {
+	for _, s := range c.summaries(sourceID, agent, f) {
 		if projectKey == "" || s.ProjectKey == projectKey {
 			out = append(out, s)
 		}
@@ -108,7 +108,8 @@ func (c *Core) scoped(projectKey, sourceID, agent string) []model.SessionSummary
 }
 
 // Calendar returns one month of daily activity. month is YYYY-MM ("" = current month).
-func (c *Core) Calendar(projectKey, sourceID, agent, month string) *Calendar {
+// Only the filter's model applies: the calendar picks its own days.
+func (c *Core) Calendar(projectKey, sourceID, agent, month string, f Filter) *Calendar {
 	start, err := time.ParseInLocation("2006-01", month, time.Local)
 	if err != nil {
 		n := time.Now()
@@ -124,7 +125,7 @@ func (c *Core) Calendar(projectKey, sourceID, agent, month string) *Calendar {
 	}
 	b := c.newBilling()
 	sessions := map[string]bool{}
-	for _, s := range c.scoped(projectKey, sourceID, agent) {
+	for _, s := range c.scoped(projectKey, sourceID, agent, Filter{Model: f.Model}) {
 		for k, ds := range s.Days {
 			m := k[:7]
 			if cal.First == "" || m < cal.First {
@@ -209,7 +210,7 @@ type DayDetail struct {
 
 // Day returns everything that happened on one day (YYYY-MM-DD).
 // Sessions are re-read from disk for the prompt list and the hourly split.
-func (c *Core) Day(projectKey, sourceID, agent, date string) *DayDetail {
+func (c *Core) Day(projectKey, sourceID, agent, date string, f Filter) *DayDetail {
 	dd := &DayDetail{Date: date, Title: c.scopeTitle(projectKey, sourceID), ByAgent: map[string]float64{}, ByModel: map[string]float64{}}
 	names := map[string]string{}
 	for _, s := range c.sources() {
@@ -217,7 +218,7 @@ func (c *Core) Day(projectKey, sourceID, agent, date string) *DayDetail {
 	}
 	b := c.newBilling()
 	var active []model.SessionSummary
-	for _, s := range c.scoped(projectKey, sourceID, agent) {
+	for _, s := range c.scoped(projectKey, sourceID, agent, Filter{Model: f.Model}) {
 		ds, ok := s.Days[date]
 		if !ok {
 			continue

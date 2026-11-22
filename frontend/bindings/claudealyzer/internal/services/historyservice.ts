@@ -12,16 +12,31 @@ import * as core$0 from "../core/models.js";
 // @ts-ignore: Unused imports
 import * as model$0 from "../model/models.js";
 
-export function Projects(sourceID: string, agent: string): $CancellablePromise<core$0.Project[] | null> {
-    return $Call.ByID(918974268, sourceID, agent);
+/**
+ * Models lists the models seen in a source, for the model filter.
+ */
+export function Models(sourceID: string, agent: string): $CancellablePromise<core$0.ModelInfo[] | null> {
+    return $Call.ByID(4246754768, sourceID, agent);
+}
+
+export function Projects(sourceID: string, agent: string, f: core$0.Filter): $CancellablePromise<core$0.Project[] | null> {
+    return $Call.ByID(918974268, sourceID, agent, f);
+}
+
+/**
+ * Search finds text in prompts, answers, commands, file paths and tool calls.
+ * kinds: "" for all, or a comma-separated list of prompt, answer, command, file, tool.
+ */
+export function Search(query: string, projectKey: string, sourceID: string, agent: string, kinds: string, f: core$0.Filter): $CancellablePromise<core$0.SearchResult | null> {
+    return $Call.ByID(3455960694, query, projectKey, sourceID, agent, kinds, f);
 }
 
 export function Session(sourceID: string, id: string): $CancellablePromise<core$0.SessionDetail | null> {
     return $Call.ByID(3994953258, sourceID, id);
 }
 
-export function Sessions(projectKey: string, sourceID: string, agent: string, sortBy: string): $CancellablePromise<core$0.SessionRow[] | null> {
-    return $Call.ByID(846618139, projectKey, sourceID, agent, sortBy);
+export function Sessions(projectKey: string, sourceID: string, agent: string, sortBy: string, f: core$0.Filter): $CancellablePromise<core$0.SessionRow[] | null> {
+    return $Call.ByID(846618139, projectKey, sourceID, agent, sortBy, f);
 }
 
 export function Step(sourceID: string, sessionID: string, subagentID: string, stepID: string): $CancellablePromise<core$0.StepDetail | null> {

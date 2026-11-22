@@ -3,7 +3,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@a
 import { SnMenuImports, SnMenuItem, SnStatusBarImports, SnWindowImports } from '@spartan-native/desktop-ui';
 import { isWails } from '@spartan-native/host-wails';
 import { injectPlatformFamily, injectSkin, skinFamily } from '@spartan-native/theme';
-import { SourceService } from './lib/api';
+import { NgIcon } from '@ng-icons/core';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { ExportService, SourceService } from './lib/api';
 import { fmtUSD } from './lib/format';
 import { AppState, VIEWS } from './lib/state';
 import { Calendar } from './views/calendar';
@@ -12,6 +14,11 @@ import { Costs } from './views/costs';
 import { History } from './views/history';
 import { Settings } from './views/settings';
 import { ScopeFilters, Sidebar, ViewCommands } from './views/sidebar';
+import { Budgets } from './views/budgets';
+import { Compare } from './views/compare';
+import { ProjectDashboard } from './views/project';
+import { Search } from './views/search';
+import { Trends } from './views/trends';
 
 /**
  * The window. Mac look: a full-height sidebar with the traffic lights in its top strip, and a
@@ -22,7 +29,10 @@ import { ScopeFilters, Sidebar, ViewCommands } from './views/sidebar';
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, SnWindowImports, SnStatusBarImports, SnMenuImports, Sidebar, ScopeFilters, ViewCommands, History, Analysis, Overview, Calendar, Costs, Settings],
+  imports: [
+    NgTemplateOutlet, NgIcon, HlmButtonImports, SnWindowImports, SnStatusBarImports, SnMenuImports, Sidebar, ScopeFilters, ViewCommands,
+    History, Search, Analysis, Overview, Calendar, Costs, ProjectDashboard, Compare, Trends, Budgets, Settings,
+  ],
   host: { class: 'sn-window flex h-screen min-h-0 flex-col overflow-hidden', snSheetHost: '' },
   template: `
     <ng-template #titleBar>
@@ -53,6 +63,11 @@ import { ScopeFilters, Sidebar, ViewCommands } from './views/sidebar';
           @case ('overview') { <cz-overview /> }
           @case ('calendar') { <cz-calendar /> }
           @case ('costs') { <cz-costs /> }
+          @case ('search') { <cz-search /> }
+          @case ('project') { <cz-project /> }
+          @case ('compare') { <cz-compare /> }
+          @case ('trends') { <cz-trends /> }
+          @case ('budgets') { <cz-budgets /> }
           @case ('settings') { <cz-settings /> }
         }
       </main>
@@ -73,9 +88,28 @@ import { ScopeFilters, Sidebar, ViewCommands } from './views/sidebar';
         <ng-container [ngTemplateOutlet]="view" />
       </div>
     }
+    <!-- Notices: exports and spending alerts. -->
+    <div class="pointer-events-none fixed right-4 bottom-9 z-50 grid w-[22rem] gap-2" aria-live="polite">
+      @for (t of state.toasts(); track t.id) {
+        <div role="status" class="pointer-events-auto grid gap-0.5 rounded-lg border border-l-[3px] bg-popover px-3 py-2 text-[12.5px] text-popover-foreground shadow-lg"
+          [style.border-left-color]="t.tone === 'error' ? 'var(--crit)' : t.tone === 'warn' ? 'var(--warn)' : t.tone === 'ok' ? 'var(--ok)' : 'var(--s1)'">
+          <div class="flex items-start gap-2">
+            <b class="min-w-0 flex-1 font-semibold">{{ t.title }}</b>
+            <button hlmBtn variant="ghost" size="icon-xs" aria-label="Dismiss" (click)="state.dismiss(t.id)"><ng-icon name="lucideX" /></button>
+          </div>
+          @if (t.body) { <span class="selectable break-words text-muted-foreground">{{ t.body }}</span> }
+          @if (t.alert) {
+            <button hlmBtn variant="link" size="xs" class="h-auto justify-self-start p-0" (click)="openAlert(t.alert); state.dismiss(t.id)">
+              {{ t.alert.kind === 'session' ? 'Open session' : 'Open budgets & limits' }}
+            </button>
+          }
+        </div>
+      }
+    </div>
     <sn-status-bar ariaLabel="Status">
       <span snStatusItem live>{{ scanText() }}</span>
       <span snStatusItem>{{ state.projects().length }} projects · {{ state.sources().length }} sources</span>
+      @if (state.filtered()) { <span snStatusItem>Filtered: {{ filterText() }}</span> }
       <span snStatusItem snStatusBarEnd class="tabular">{{ fmtUSD(totalCost()) }} list price</span>
     </sn-status-bar>
   `,
@@ -127,6 +161,26 @@ export class App implements OnInit {
           { id: 'add-source', label: 'Add source…', accelerator: 'mod+shift+n', action: () => this.state.requestAddSource() },
           { id: 'rescan', label: 'Rescan sources', accelerator: 'mod+shift+r', action: () => void SourceService.Rescan() },
           { type: 'separator' },
+          {
+            id: 'export-md',
+            label: 'Export session as Markdown…',
+            accelerator: 'mod+e',
+            enabled: hasSession,
+            action: () => this.exportSession('md'),
+          },
+          { id: 'export-json', label: 'Export session as JSON…', enabled: hasSession, action: () => this.exportSession('json') },
+          {
+            id: 'export-sessions',
+            label: 'Export sessions as CSV…',
+            accelerator: 'mod+shift+e',
+            action: () => void this.state.exported(ExportService.SessionsCSV('', this.state.sourceId(), this.state.agent(), 0, this.state.filter()), 'Sessions CSV'),
+          },
+          {
+            id: 'export-days',
+            label: 'Export daily usage as CSV…',
+            action: () => void this.state.exported(ExportService.CalendarCSV('', this.state.sourceId(), this.state.agent(), '', this.state.filter()), 'Daily usage CSV'),
+          },
+          { type: 'separator' },
           { role: 'close' },
         ],
       },
@@ -141,7 +195,7 @@ export class App implements OnInit {
             checked: view === v.id,
             enabled: hasSession || (v.id !== 'analysis' && v.id !== 'costs'),
             accelerator: 'mod+' + v.key,
-            action: () => this.state.go(v.id),
+            action: () => (v.id === 'search' ? this.state.openSearch() : this.state.go(v.id)),
           })),
           { type: 'separator' },
           {
@@ -160,6 +214,25 @@ export class App implements OnInit {
       { role: 'windowMenu' },
     ];
   });
+
+  readonly filterText = computed(() => {
+    const f = this.state.filter();
+    const bits: string[] = [];
+    if (f.model) bits.push(f.model.replace(/^claude-/, ''));
+    if (f.from || f.to) bits.push(`${f.from || '…'} – ${f.to || '…'}`);
+    return bits.join(' · ');
+  });
+
+  exportSession(kind: 'md' | 'json'): void {
+    const c = this.state.current();
+    if (!c) return;
+    void this.state.exported(kind === 'md' ? ExportService.SessionMarkdown(c.sourceId, c.id, true) : ExportService.SessionJSON(c.sourceId, c.id), kind === 'md' ? 'Markdown' : 'JSON');
+  }
+
+  openAlert(a: { kind: string; sourceId: string; sessionId: string; projectKey: string }): void {
+    if (a.kind === 'session' && a.sessionId) void this.state.openFrom(a.projectKey, a.sourceId, a.sessionId);
+    else this.state.go('budgets');
+  }
 
   ngOnInit(): void {
     void this.state.init();

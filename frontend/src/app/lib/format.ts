@@ -1,4 +1,6 @@
 export const AGENTS: Record<string, string> = { claude: 'Claude', codex: 'Codex', gemini: 'Gemini', opencode: 'OpenCode' };
+/** The agent's product name, as used in "X's own cost total". */
+export const AGENT_PRODUCT: Record<string, string> = { claude: 'Claude Code', codex: 'Codex', gemini: 'Gemini CLI', opencode: 'OpenCode' };
 export const AGENT_COLOR: Record<string, string> = { claude: 'var(--s1)', codex: 'var(--s2)', gemini: 'var(--s3)', opencode: 'var(--s4)' };
 
 /** Token types in a fixed order: color follows the type, never its rank. */

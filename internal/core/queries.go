@@ -75,14 +75,14 @@ func (c *Core) CheckFolder(agent model.Agent, dir string) adapters.Detection {
 
 type SourceInfo struct {
 	Source
-	DirShort      string  `json:"dirShort"`
-	Sessions      int     `json:"sessions"`
-	CostUSD       float64 `json:"costUSD"`
-	Warnings      int     `json:"warnings"`
-	Version       string  `json:"version"`
-	Detection     string  `json:"detection"`
-	OK            bool    `json:"ok"`
-	Supported     bool    `json:"supported"`
+	DirShort  string  `json:"dirShort"`
+	Sessions  int     `json:"sessions"`
+	CostUSD   float64 `json:"costUSD"`
+	Warnings  int     `json:"warnings"`
+	Version   string  `json:"version"`
+	Detection string  `json:"detection"`
+	OK        bool    `json:"ok"`
+	Supported bool    `json:"supported"`
 }
 
 func (c *Core) Sources() []SourceInfo {
@@ -204,9 +204,9 @@ type Project struct {
 	Unpriced     bool          `json:"unpriced"`
 }
 
-func (c *Core) Projects(sourceID, agent string) []Project {
+func (c *Core) Projects(sourceID, agent string, f Filter) []Project {
 	m := map[string]*Project{}
-	for _, s := range c.summaries(sourceID, agent) {
+	for _, s := range c.summaries(sourceID, agent, f) {
 		p := m[s.ProjectKey]
 		if p == nil {
 			p = &Project{Key: s.ProjectKey, Name: projectName(s.ProjectKey), Path: ShortHome(s.ProjectKey)}
@@ -241,13 +241,13 @@ type SessionRow struct {
 }
 
 // Sessions lists the sessions of a project ("" = all projects). sort: recent | cost.
-func (c *Core) Sessions(projectKey, sourceID, agent, sortBy string) []SessionRow {
+func (c *Core) Sessions(projectKey, sourceID, agent, sortBy string, f Filter) []SessionRow {
 	names := map[string]string{}
 	for _, s := range c.sources() {
 		names[s.ID] = s.Name
 	}
 	var out []SessionRow
-	for _, s := range c.summaries(sourceID, agent) {
+	for _, s := range c.summaries(sourceID, agent, f) {
 		if projectKey != "" && s.ProjectKey != projectKey {
 			continue
 		}
@@ -265,8 +265,8 @@ func (c *Core) Sessions(projectKey, sourceID, agent, sortBy string) []SessionRow
 
 type SessionDetail struct {
 	Session    *model.Session    `json:"session"`
-	Findings   []insight.Finding `json:"findings"`     // grouped, session scope
-	All        []insight.Finding `json:"allFindings"`  // ungrouped, for turn scope
+	Findings   []insight.Finding `json:"findings"`    // grouped, session scope
+	All        []insight.Finding `json:"allFindings"` // ungrouped, for turn scope
 	SourceName string            `json:"sourceName"`
 	Billing    Billing           `json:"billing"`
 	Effective  Effective         `json:"effective"`

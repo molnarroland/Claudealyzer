@@ -9,7 +9,7 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HistoryService, core, m } from '../lib/api';
-import { AGENTS, ctx, errText, fmtD, fmtT, fmtUSD, shortModel, total } from '../lib/format';
+import { AGENTS, AGENT_PRODUCT, ctx, errText, fmtD, fmtT, fmtUSD, shortModel, total } from '../lib/format';
 import { AppState } from '../lib/state';
 import { AgentTag, FindingsList, Segmented, TONE, TokenBreakdown } from './shared';
 
@@ -235,7 +235,7 @@ export class Chat {
           </sn-inspector-section>
         }
         @if (sc.kind === 'Session' && state.session()?.reportedCost != null) {
-          <p class="m-0 text-xs text-muted-foreground">Claude Code's own cost-state total is {{ fmtUSD(state.session()!.reportedCost!) }} ({{ diff(sc.usage.costUSD, state.session()!.reportedCost!) }}).</p>
+          <p class="m-0 text-xs text-muted-foreground">{{ agentName() }}'s own cost total is {{ fmtUSD(state.session()!.reportedCost!) }} ({{ diff(sc.usage.costUSD, state.session()!.reportedCost!) }}).</p>
         }
         @if (sc.kind === 'Session' && state.session()?.subagentUsage?.costUSD) {
           <p class="m-0 text-xs text-muted-foreground">Includes {{ state.session()!.subagentCount }} subagents: {{ fmtUSD(state.session()!.subagentUsage.costUSD) }}.</p>
@@ -256,6 +256,7 @@ export class Panel {
   protected readonly fmtUSD = fmtUSD;
   protected readonly total = total;
   readonly peak = computed(() => Math.max(0, ...(this.state.scope()?.turns ?? []).map((t) => t.peakContext)));
+  readonly agentName = computed(() => AGENT_PRODUCT[this.state.session()?.agent ?? ''] ?? 'The agent');
   readonly findings = computed(() => {
     const d = this.state.detail();
     if (!d) return [];

@@ -433,8 +433,9 @@ type Overview struct {
 }
 
 // Overview: projectKey "" means the whole source (or all sources). days 0 = all time.
-func (c *Core) Overview(projectKey, sourceID, agent string, days int) *Overview {
-	rows := c.Sessions(projectKey, sourceID, agent, "cost")
+// A filter with dates replaces the days range.
+func (c *Core) Overview(projectKey, sourceID, agent string, days int, f Filter) *Overview {
+	rows := c.Sessions(projectKey, sourceID, agent, "cost", f)
 	o := &Overview{ByAgent: map[string]float64{}}
 	if projectKey != "" {
 		o.Title, o.Path = projectName(projectKey), ShortHome(projectKey)
@@ -444,18 +445,29 @@ func (c *Core) Overview(projectKey, sourceID, agent string, days int) *Overview 
 		o.Title, o.Path = "All sources", fmt.Sprintf("%d sources", len(c.sources()))
 	}
 	today := time.Now()
+	toS := today.Format("2006-01-02")
 	var from time.Time
-	if days > 0 {
+	if f.dated() {
+		days = 0
+		if f.To != "" && f.To < toS {
+			toS = f.To
+		}
+	} else if days > 0 {
 		from = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, time.Local).AddDate(0, 0, -(days - 1))
 	}
 	fromS := from.Format("2006-01-02")
+	if f.From != "" {
+		fromS = f.From
+		from, _ = time.ParseInLocation("2006-01-02", fromS, time.Local)
+	}
+	bounded := days > 0 || f.dated()
 	byDay := map[string]map[string]float64{}
 	var costs []float64
 	agents := map[string]bool{}
 	for _, r := range rows {
 		inRange := 0.0
 		for d, v := range r.Daily {
-			if days > 0 && d < fromS {
+			if bounded && (d < fromS || d > toS) {
 				continue
 			}
 			if byDay[d] == nil {
@@ -476,15 +488,17 @@ func (c *Core) Overview(projectKey, sourceID, agent string, days int) *Overview 
 			o.HighSessions++
 		}
 	}
-	if days == 0 && len(byDay) > 0 {
+	if f.From == "" && days == 0 && len(byDay) > 0 {
+		fromS = ""
 		for d := range byDay {
-			if fromS == "0001-01-01" || d < fromS {
+			if fromS == "" || d < fromS {
 				fromS = d
 			}
 		}
 		from, _ = time.ParseInLocation("2006-01-02", fromS, time.Local)
 	}
-	for d := from; len(byDay) > 0 && !d.After(today) && !from.IsZero(); d = d.AddDate(0, 0, 1) {
+	end, _ := time.ParseInLocation("2006-01-02", toS, time.Local)
+	for d := from; len(byDay) > 0 && !d.After(end) && !from.IsZero(); d = d.AddDate(0, 0, 1) {
 		k := d.Format("2006-01-02")
 		row := DayRow{Date: k, ByAgent: byDay[k]}
 		if row.ByAgent == nil {
@@ -613,7 +627,7 @@ func (c *Core) CostReport(sourceID, sessionID string, factor float64) (*CostRepo
 	})
 	r.NoCache = noCache.CostUSD
 	today := pricing.Reprice(all, func(cl model.Call) (pricing.Rate, bool) { return pricing.Lookup(cl.Model, 0) })
-	r.Scenarios = append(r.Scenarios, Scenario{"API list price, rates on the day", "Published pay-as-you-go rates valid when each request ran. Same method as Claude Code's own cost total.", u.CostUSD, true})
+	r.Scenarios = append(r.Scenarios, Scenario{"API list price, rates on the day", "Published pay-as-you-go rates valid when each request ran. Same method as Claude Code's and OpenCode's own cost totals.", u.CostUSD, true})
 	if math.Abs(today.CostUSD-u.CostUSD) > 0.005 {
 		r.Scenarios = append(r.Scenarios, Scenario{"API list price at today's rates", "The same tokens re-priced with the current price table.", today.CostUSD, false})
 	}

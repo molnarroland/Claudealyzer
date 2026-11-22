@@ -2,8 +2,10 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"runtime"
+	"time"
 
 	spartannative "github.com/spartan-native/host-wails"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -21,6 +23,7 @@ func init() {
 	application.RegisterEvent[core.ScanStatus]("scan:progress")
 	application.RegisterEvent[core.ScanStatus]("index:updated")
 	application.RegisterEvent[[]string]("session:updated")
+	application.RegisterEvent[core.Alert]("alert")
 }
 
 func main() {
@@ -29,6 +32,15 @@ func main() {
 		if app != nil {
 			app.Event.Emit(name, data)
 		}
+	})
+
+	// OS notifications for budget, limit and session alerts. An unsigned or unbundled build may
+	// not be allowed to post them; the alerts still show inside the app.
+	notifier := services.NewNotifyService()
+	var seq int
+	c.SetNotifier(func(title, body string) error {
+		seq++
+		return notifier.Send(fmt.Sprintf("claudealyzer-%d-%d", time.Now().Unix(), seq), title, body)
 	})
 
 	app = application.New(application.Options{
@@ -43,6 +55,9 @@ func main() {
 			application.NewService(&services.UsageService{Core: c}),
 			application.NewService(&services.InsightService{Core: c}),
 			application.NewService(&services.PricingService{Core: c}),
+			application.NewService(&services.BudgetService{Core: c, Authorize: notifier.Authorize}),
+			application.NewService(&services.ExportService{Core: c}),
+			application.NewService(notifier),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

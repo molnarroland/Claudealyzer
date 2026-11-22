@@ -14,6 +14,7 @@ func Finalize(s *model.Session) {
 	byModel := map[string]model.Usage{}
 	daily := map[string]float64{}
 	days := map[string]model.DayStat{}
+	hourly := map[int64]float64{}
 	addCalls := func(calls []model.Call) {
 		for _, c := range calls {
 			if c.Model != "" && c.Model != "<synthetic>" {
@@ -28,6 +29,7 @@ func Finalize(s *model.Session) {
 				ds := days[d]
 				ds.Usage.Add(c.Usage)
 				days[d] = ds
+				hourly[time.UnixMilli(c.Time).Truncate(time.Hour).Unix()] += c.Usage.CostUSD
 			}
 		}
 	}
@@ -69,6 +71,8 @@ func Finalize(s *model.Session) {
 		}
 	}
 	s.Daily = daily
+	s.Hourly = hourly
+	s.EditedFiles = editedFiles(s)
 	s.Days = days
 	s.ByModel = byModel
 	s.Models = s.Models[:0]
@@ -122,3 +126,47 @@ func Finalize(s *model.Session) {
 
 // ToSummary strips the heavy parts.
 func ToSummary(s *model.Session) model.SessionSummary { return s.SessionSummary }
+
+const maxEditedFiles = 40
+
+// editedFiles counts edit steps per file over the session and its subagents, keeping the most edited.
+func editedFiles(s *model.Session) map[string]int {
+	n := map[string]int{}
+	count := func(turns []model.Turn) {
+		for _, t := range turns {
+			for _, st := range t.Steps {
+				if st.Kind == model.StepEdit {
+					for _, f := range st.Files {
+						n[f]++
+					}
+				}
+			}
+		}
+	}
+	count(s.Turns)
+	for _, a := range s.Subagents {
+		count(a.Turns)
+	}
+	if len(n) <= maxEditedFiles {
+		return n
+	}
+	type fc struct {
+		f string
+		c int
+	}
+	all := make([]fc, 0, len(n))
+	for f, c := range n {
+		all = append(all, fc{f, c})
+	}
+	sort.Slice(all, func(i, j int) bool {
+		if all[i].c != all[j].c {
+			return all[i].c > all[j].c
+		}
+		return all[i].f < all[j].f
+	})
+	out := make(map[string]int, maxEditedFiles)
+	for _, x := range all[:maxEditedFiles] {
+		out[x.f] = x.c
+	}
+	return out
+}

@@ -7,7 +7,7 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { LineChart, LinePoint } from '../charts/line-chart';
 import { UsageService, core } from '../lib/api';
-import { TOKEN_TYPES, errText, fmtDay, fmtT, fmtUSD } from '../lib/format';
+import { AGENT_PRODUCT, TOKEN_TYPES, errText, fmtDay, fmtT, fmtUSD } from '../lib/format';
 import { AppState } from '../lib/state';
 import { AgentTag, Kpi } from './shared';
 
@@ -80,7 +80,7 @@ const COLOR: Record<string, string> = Object.fromEntries(TOKEN_TYPES.map((t) => 
             <li><b>So the biggest lever is context size × number of steps</b>, not the length of your prompt. See <button hlmBtn variant="link" class="h-auto p-0 text-[13px]" (click)="state.go('analysis')">Session analysis</button> for what drove them.</li>
           </ol>
           @if (r.reported != null) {
-            <p class="m-0 text-xs text-muted-foreground">Claude Code's own cost total for this session: {{ fmtUSD(r.reported) }}.</p>
+            <p class="m-0 text-xs text-muted-foreground">{{ AGENT_PRODUCT[r.agent] ?? 'The agent' }}'s own cost total for this session: {{ fmtUSD(r.reported) }}.</p>
           }
         </section>
         <section hlmCard data-size="sm" class="content-start gap-2.5 px-4">
@@ -147,6 +147,7 @@ const COLOR: Record<string, string> = Object.fromEntries(TOKEN_TYPES.map((t) => 
 export class Costs {
   protected readonly state = inject(AppState);
   protected readonly fmtUSD = fmtUSD;
+  protected readonly AGENT_PRODUCT = AGENT_PRODUCT;
   protected readonly fmtT = fmtT;
   protected readonly fmtDay = fmtDay;
   protected readonly usd = (v: number) => '$' + Math.round(v);

@@ -12,21 +12,21 @@ import (
 )
 
 type Thresholds struct {
-	ContextTokens   int64   `json:"contextTokens"`   // context too large
-	LongTurns       int     `json:"longTurns"`       // long session without compaction
-	LongCacheRead   int64   `json:"longCacheRead"`   // ... or cache read total
-	FilesSession    int     `json:"filesSession"`    // distinct files read
-	RereadPct       float64 `json:"rereadPct"`       // % of reads that are re-reads
-	FilesStep       int     `json:"filesStep"`       // reads in one turn
-	ToolOutput      int64   `json:"toolOutput"`      // tokens per tool result
-	SlowRunSec      int     `json:"slowRunSec"`      // test/build wall time per turn
-	HeavyPct        float64 `json:"heavyPct"`        // heavy command share of a turn
-	CacheChurn      float64 `json:"cacheChurn"`      // cache write / read
-	SubagentPct     float64 `json:"subagentPct"`     // subagent share of session cost
-	SubagentFanout  int     `json:"subagentFanout"`  // subagents in one turn
-	SmallOutput     int64   `json:"smallOutput"`     // output tokens considered "small"
-	SmallOutputPct  float64 `json:"smallOutputPct"`  // share of small calls on large models
-	FailureStreak   int     `json:"failureStreak"`   // same tool failing in a row
+	ContextTokens  int64   `json:"contextTokens"`  // context too large
+	LongTurns      int     `json:"longTurns"`      // long session without compaction
+	LongCacheRead  int64   `json:"longCacheRead"`  // ... or cache read total
+	FilesSession   int     `json:"filesSession"`   // distinct files read
+	RereadPct      float64 `json:"rereadPct"`      // % of reads that are re-reads
+	FilesStep      int     `json:"filesStep"`      // reads in one turn
+	ToolOutput     int64   `json:"toolOutput"`     // tokens per tool result
+	SlowRunSec     int     `json:"slowRunSec"`     // test/build wall time per turn
+	HeavyPct       float64 `json:"heavyPct"`       // heavy command share of a turn
+	CacheChurn     float64 `json:"cacheChurn"`     // cache write / read
+	SubagentPct    float64 `json:"subagentPct"`    // subagent share of session cost
+	SubagentFanout int     `json:"subagentFanout"` // subagents in one turn
+	SmallOutput    int64   `json:"smallOutput"`    // output tokens considered "small"
+	SmallOutputPct float64 `json:"smallOutputPct"` // share of small calls on large models
+	FailureStreak  int     `json:"failureStreak"`  // same tool failing in a row
 }
 
 func DefaultThresholds() Thresholds {
@@ -302,8 +302,9 @@ func Session(s *model.Session, th Thresholds) []Finding {
 	if s.ReportedCost != nil && *s.ReportedCost > 0 {
 		d := (u.CostUSD / *s.ReportedCost - 1) * 100
 		if d > 5 || d < -5 {
-			out = append(out, Finding{Rule: "reported", Severity: "ok", Title: "Estimate differs from Claude Code's total", Turn: -1,
-				Text: fmt.Sprintf("Claude Code recorded $%.2f; this estimate is %+.1f%%. Check the pricing table for the models used.", *s.ReportedCost, d)})
+			name := agentName(s.Agent)
+			out = append(out, Finding{Rule: "reported", Severity: "ok", Title: "Estimate differs from " + name + "'s total", Turn: -1,
+				Text: fmt.Sprintf("%s recorded $%.2f; this estimate is %+.1f%%. Check the pricing table for the models used.", name, *s.ReportedCost, d)})
 		}
 	}
 	Sort(out)
@@ -409,4 +410,60 @@ func minf(a, b float64) float64 {
 		return a
 	}
 	return b
+}
+
+// RuleTitles names each rule for reports that list rules rather than findings.
+var RuleTitles = map[string]string{
+	"context":      "Context too large",
+	"long-session": "Long session without compaction",
+	"tool-output":  "Large tool output",
+	"files":        "Many files read",
+	"rereads":      "Files read again",
+	"errors":       "Errors and retries",
+	"slow-runs":    "Slow test and build runs",
+	"repeat":       "Repeated command",
+	"cpu":          "CPU-heavy commands",
+	"fanout":       "Subagent fan-out",
+	"subagents":    "Expensive subagents",
+	"model":        "Large model on small steps",
+	"cache":        "Cache churn",
+	"reported":     "Estimate differs from the agent's total",
+}
+
+func agentName(a model.Agent) string {
+	switch a {
+	case model.OpenCode:
+		return "OpenCode"
+	case model.Codex:
+		return "Codex"
+	case model.Gemini:
+		return "Gemini CLI"
+	}
+	return "Claude Code"
+}
+
+// RuleTitle returns a rule's display name.
+func RuleTitle(rule string) string {
+	if t, ok := RuleTitles[rule]; ok {
+		return t
+	}
+	return rule
+}
+
+// Rules counts ungrouped findings per rule, leaving out the "ok" ones.
+func Rules(fs []Finding) map[string]model.RuleStat {
+	out := map[string]model.RuleStat{}
+	for _, f := range fs {
+		if f.Severity == "ok" {
+			continue
+		}
+		r := out[f.Rule]
+		r.Count++
+		if f.Severity == "high" {
+			r.High++
+		}
+		r.ImpactUSD += f.ImpactUSD
+		out[f.Rule] = r
+	}
+	return out
 }

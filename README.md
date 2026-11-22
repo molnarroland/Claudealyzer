@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>See where your coding agent's tokens, time and money go.</strong><br>
-  A local, read-only desktop app for Claude Code, Codex CLI and Gemini CLI history.<br><br>
+  A local, read-only desktop app for Claude Code, Codex CLI, Gemini CLI and OpenCode history.<br><br>
   <a href="https://molnarroland.github.io/Claudealyzer/"><strong>Website</strong></a> ·
   <a href="#installation"><strong>Download</strong></a> ·
   <a href="DEVELOPMENT.md"><strong>Build from source</strong></a>
@@ -55,7 +55,7 @@ prompts, tool calls and subagents cost the most, why they cost that much, and wh
 | Claude Code | `~/.claude*` (multiple profiles supported) | ✅ Supported |
 | Codex CLI / Codex Desktop | `~/.codex` | ✅ Supported |
 | Gemini CLI | `~/.gemini` | ✅ Supported |
-| OpenCode | `~/.local/share/opencode` | 🔍 Detected, not read yet |
+| OpenCode | `~/.local/share/opencode` (`opencode.db` or the older `storage/`) | ✅ Supported |
 
 On first start Claudealyzer detects agent folders in your home directory and adds them as sources.
 You can add more folders (e.g. a copied profile or a second machine's backup) at any time.
@@ -72,6 +72,20 @@ You can add more folders (e.g. a copied profile or a second machine's backup) at
 - **Usage & insights panel** on the right, scoped to the whole session, a selected turn, or a subagent:
   tokens by type, list price, your cost, and the findings that apply.
 - Copy session ID, jump to analysis or the cost breakdown from any session.
+
+### Search — find anything in any transcript
+
+- **Full-text search** across every session in scope: prompts, answers, shell commands, file paths and tool calls.
+- Every word must match (case-insensitive); `"quoted phrases"` match as a whole. Narrow it to prompts, answers,
+  commands, files or tools, or to the selected project.
+- Results are grouped by session; a hit opens the session at its turn, or the step sheet of that command.
+- Open it with <kbd>⌘/Ctrl</kbd> <kbd>K</kbd>, the search button in the title bar, or by pressing Enter in the sidebar's
+  project filter.
+
+### Filters — by model and date
+
+- A **model** and a **date range** filter in the title bar (any time, today, last 7 or 30 days, this or last month,
+  or custom dates) narrow the project tree, Overview, the dashboards, Compare, Trends and Search together.
 
 ### Step detail — what one tool call really did
 
@@ -93,6 +107,43 @@ You can add more folders (e.g. a copied profile or a second machine's backup) at
 
 - Daily list price per agent for the last 7 days, 30 days or all time.
 - Sortable session table with finding badges, filtered to one project or the whole source.
+
+### Project dashboard — one project at a glance
+
+- List price and what you paid, sessions, prompts, cache hit and sessions with high findings for 30 days, 90 days or all time.
+- **Cost over time** per agent, by day or week.
+- **Most expensive sessions**, **most-edited files**, **recurring findings** (how many sessions each rule fired in, with
+  the estimated impact) and cost per model.
+
+### Compare — two sessions or two periods
+
+- **Two sessions** side by side: cost, tokens, cache hit, peak context, wall time, subagents and findings, with the change
+  marked better or worse. Pick them in the view, or right-click sessions in the sidebar and choose *Compare with…*.
+- **Two periods** of a project or the whole source: this week vs last week, this month vs last month, or custom ranges.
+  Findings per rule and cost per model are compared too.
+
+### Insight trends — are the suggestions working?
+
+- Week by week: the share of sessions with a finding and the estimated impact of all findings.
+- Per rule: how often it fired each week, the last 4 weeks against the 4 before, and whether it is improving or getting worse.
+
+### Budgets, usage limits and alerts
+
+- **Budgets** per day, week or month, for everything, one source or one project, counted in list price or in what you
+  actually pay. Each shows the spending so far and where the period ends at the current pace.
+- **Usage limits**: subscription 5-hour windows and weeks rebuilt from your history, with the running window's burn rate.
+  Enter the list price your plan allows per window and per week to see how close you are. Codex's own reported
+  rate-limit percentage is shown where available.
+- **Alerts** when a budget or limit reaches the warning level (80% by default) or runs out, and when one session passes
+  a cost you set. They show inside the app and, if you turn them on, as system notifications (the macOS build must be a
+  signed `.app` for those).
+
+### Export
+
+- A session as **Markdown** (prompts, answers and steps, subagents included) or **JSON** (the parsed session with every call),
+  or copy the transcript as Markdown.
+- Sessions as **CSV** (one row each, with tokens by type, list price and your cost) and daily usage as **CSV** (a month, or every active day).
+- From the File menu, the title bar, Overview, Calendar, the Project dashboard and the sidebar's context menus.
 
 ### Calendar — your usage by day
 
@@ -150,7 +201,10 @@ another look (Windows 11/10, macOS 26/13–15, GNOME, KDE Plasma, ChromeOS) or f
 
 | Shortcut | Action |
 |---|---|
-| <kbd>⌘/Ctrl</kbd> <kbd>1</kbd>…<kbd>5</kbd> | History, Session analysis, Cost explained, Overview, Calendar |
+| <kbd>⌘/Ctrl</kbd> <kbd>1</kbd>…<kbd>9</kbd> | History, Session analysis, Cost explained, Overview, Calendar, Project dashboard, Compare, Insight trends, Budgets & limits |
+| <kbd>⌘/Ctrl</kbd> <kbd>K</kbd> | Search transcripts |
+| <kbd>⌘/Ctrl</kbd> <kbd>E</kbd> | Export the open session as Markdown |
+| <kbd>⌘/Ctrl</kbd> <kbd>⇧</kbd> <kbd>E</kbd> | Export sessions as CSV |
 | <kbd>⌘/Ctrl</kbd> <kbd>,</kbd> | Sources & settings |
 | <kbd>⌘/Ctrl</kbd> <kbd>⇧</kbd> <kbd>N</kbd> | Add source |
 | <kbd>⌘/Ctrl</kbd> <kbd>⇧</kbd> <kbd>R</kbd> | Rescan sources |
@@ -160,6 +214,8 @@ another look (Windows 11/10, macOS 26/13–15, GNOME, KDE Plasma, ChromeOS) or f
 
 - **Each API response is counted once** (Claude: by `message.id`; Codex: by `response_id`; Gemini: by message id),
   even if it appears several times in a transcript.
+- **OpenCode** reports cache reads and writes separately from input; each step (`step-finish`) counts as one call, and
+  OpenCode's own cost total is shown next to the estimate. Child sessions started by the task tool become subagents.
 - **Usage is normalised** to: uncached input, cache write (5 min / 1 h), cache read, and output (including thinking).
   Codex and Gemini report cached tokens as part of input, so uncached = input − cached.
 - **List price** = Σ tokens × rate for each model, using the rate valid on the day of the request.

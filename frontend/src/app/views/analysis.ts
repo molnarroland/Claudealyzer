@@ -7,7 +7,7 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { BarDatum, StackedBars } from '../charts/stacked-bars';
 import { LineChart, LinePoint } from '../charts/line-chart';
-import { InsightService, UsageService, core } from '../lib/api';
+import { ExportService, InsightService, UsageService, core } from '../lib/api';
 import { AGENTS, AGENT_COLOR, TOKEN_TYPES, errText, fmtD, fmtDay, fmtT, fmtUSD, fmtWhen, shortModel, total } from '../lib/format';
 import { AppState } from '../lib/state';
 import { AgentTag, FindingsList, Kpi, Segmented, TONE } from './shared';
@@ -187,8 +187,9 @@ export class Analysis {
     <sn-command-bar [title]="o()?.title ?? 'Overview'" titlePosition="start" collapse="none" class="border-b">
       <span snCommandBarEnd class="flex items-center gap-2 pe-2">
         <cz-segmented label="Scope" [options]="scopes" [(value)]="scope" />
-        <cz-segmented label="Range" [options]="ranges" [(value)]="days" />
+        @if (!state.filter().from && !state.filter().to) { <cz-segmented label="Range" [options]="ranges" [(value)]="days" /> }
       </span>
+      <button snCommand label="Export CSV" icon="lucideDownload" [priority]="1" (click)="exportCsv()"></button>
     </sn-command-bar>
     <div class="grid min-h-0 flex-1 auto-rows-max content-start gap-4 overflow-auto px-6 pt-4 pb-10 scroll-thin">
     @if (o()?.path) { <span class="mono -mb-2 text-xs text-muted-foreground">{{ o()!.path }}</span> }
@@ -292,12 +293,21 @@ export class Overview {
       const src = this.state.sourceId();
       const ag = this.state.agent();
       const d = this.days();
+      const f = this.state.filter();
       this.state.scan(); // refresh after rescans
-      untracked(() => UsageService.Overview(key, src, ag, d).then((o) => this.o.set(o)));
+      untracked(() => UsageService.Overview(key, src, ag, d, f).then((o) => this.o.set(o)));
     });
   }
 
-  readonly rangeLabel = computed(() => (this.days() ? `last ${this.days()} days` : 'all time'));
+  readonly rangeLabel = computed(() => {
+    const f = this.state.filter();
+    if (f.from || f.to) return `${f.from || '…'} – ${f.to || 'today'}`;
+    return this.days() ? `last ${this.days()} days` : 'all time';
+  });
+  exportCsv(): void {
+    const key = this.scope() === 'project' ? (this.state.projectKey() ?? '') : '';
+    void this.state.exported(ExportService.SessionsCSV(key, this.state.sourceId(), this.state.agent(), this.days(), this.state.filter()), 'Sessions CSV');
+  }
   readonly sortLabel = computed(() => ({ cost: 'list price', recent: 'date', turns: 'turns', peak: 'peak context' })[this.sort()]);
   readonly series = computed(() => (this.o()?.agents ?? []).map((a) => ({ key: a, name: AGENTS[a] ?? a, color: AGENT_COLOR[a] ?? 'var(--s4)' })));
   readonly bars = computed<BarDatum[]>(() => (this.o()?.days ?? []).map((d) => ({ label: fmtDay(d.date), title: fmtDay(d.date), values: (d.byAgent ?? {}) as Record<string, number> })));

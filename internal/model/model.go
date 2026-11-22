@@ -98,31 +98,31 @@ type Step struct {
 }
 
 type Turn struct {
-	Index         int     `json:"index"`
-	Prompt        string  `json:"prompt"`
-	StartedAt     int64   `json:"startedAt"`
-	DurationMs    int64   `json:"durationMs"`
-	Steps         []Step  `json:"steps"`
-	Answer        string  `json:"answer"`
-	Usage         Usage   `json:"usage"`         // this turn's own calls
-	SubagentUsage Usage   `json:"subagentUsage"` // subagents started in this turn
-	PeakContext   int64   `json:"peakContext"`
-	Compacted     bool    `json:"compacted"`
+	Index         int      `json:"index"`
+	Prompt        string   `json:"prompt"`
+	StartedAt     int64    `json:"startedAt"`
+	DurationMs    int64    `json:"durationMs"`
+	Steps         []Step   `json:"steps"`
+	Answer        string   `json:"answer"`
+	Usage         Usage    `json:"usage"`         // this turn's own calls
+	SubagentUsage Usage    `json:"subagentUsage"` // subagents started in this turn
+	PeakContext   int64    `json:"peakContext"`
+	Compacted     bool     `json:"compacted"`
 	Models        []string `json:"models"`
 }
 
 type Subagent struct {
-	ID           string `json:"id"`
-	Type         string `json:"type"`
-	Description  string `json:"description"`
-	Model        string `json:"model"`
-	ParentStepID string `json:"parentStepId"`
-	ParentTurn   int    `json:"parentTurn"`
-	Usage        Usage  `json:"usage"`
-	PeakContext  int64  `json:"peakContext"`
-	TurnCount    int    `json:"turnCount"`
-	Turns        []Turn `json:"turns,omitempty"`
-	Calls        []Call `json:"-"`
+	ID           string            `json:"id"`
+	Type         string            `json:"type"`
+	Description  string            `json:"description"`
+	Model        string            `json:"model"`
+	ParentStepID string            `json:"parentStepId"`
+	ParentTurn   int               `json:"parentTurn"`
+	Usage        Usage             `json:"usage"`
+	PeakContext  int64             `json:"peakContext"`
+	TurnCount    int               `json:"turnCount"`
+	Turns        []Turn            `json:"turns,omitempty"`
+	Calls        []Call            `json:"-"`
 	FullOutputs  map[string]string `json:"-"`
 }
 
@@ -147,12 +147,26 @@ type SessionSummary struct {
 	AgentVersion  string             `json:"agentVersion"`
 	Daily         map[string]float64 `json:"daily"` // YYYY-MM-DD -> list price
 	Days          map[string]DayStat `json:"days"`  // YYYY-MM-DD -> prompts and usage (subagents included)
-	FindingsHigh  int                `json:"findingsHigh"`
-	FindingsMed   int                `json:"findingsMed"`
-	RateLimitPct  *float64           `json:"rateLimitPct"`
-	Warnings      []string           `json:"warnings"`
-	Path          string             `json:"path"`
-	NoUsageData   bool               `json:"noUsageData"`
+	// Hourly is list price per local clock hour (unix seconds of the hour start), subagents included.
+	// It feeds the 5-hour and weekly usage windows.
+	Hourly map[int64]float64 `json:"hourly"`
+	// Rules counts this session's findings per insight rule (severity ok left out).
+	Rules map[string]RuleStat `json:"rules"`
+	// EditedFiles counts edit steps per file (subagents included, the most edited files only).
+	EditedFiles  map[string]int `json:"editedFiles"`
+	FindingsHigh int            `json:"findingsHigh"`
+	FindingsMed  int            `json:"findingsMed"`
+	RateLimitPct *float64       `json:"rateLimitPct"`
+	Warnings     []string       `json:"warnings"`
+	Path         string         `json:"path"`
+	NoUsageData  bool           `json:"noUsageData"`
+}
+
+// RuleStat is how often one insight rule fired in a session and its estimated impact.
+type RuleStat struct {
+	Count     int     `json:"count"`
+	High      int     `json:"high"`
+	ImpactUSD float64 `json:"impactUSD"`
 }
 
 // DayStat is one session's activity on one local calendar day.

@@ -23,6 +23,30 @@ type Billing struct {
 	RenewDay    int     `json:"renewDay"`
 	DiscountPct float64 `json:"discountPct"` // API key discount
 	Plan        string  `json:"plan"`        // free-text label, e.g. "Max"
+	// Usage limits, entered by the user as API list price (plans don't publish them in dollars).
+	// 0 = not set.
+	Limit5hUSD   float64 `json:"limit5hUSD"`   // per 5-hour window
+	LimitWeekUSD float64 `json:"limitWeekUSD"` // per week
+	WeekResetDay int     `json:"weekResetDay"` // 0 = rolling 7 days, 1–7 = Monday–Sunday at 00:00
+}
+
+// Budget is a spending limit for a scope and period.
+type Budget struct {
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	SourceID   string  `json:"sourceId"`   // "" = all sources
+	ProjectKey string  `json:"projectKey"` // "" = every project
+	Period     string  `json:"period"`     // day | week | month
+	LimitUSD   float64 `json:"limitUSD"`
+	Basis      string  `json:"basis"` // list | paid
+	Notify     bool    `json:"notify"`
+}
+
+// AlertSettings controls when the app tells you about spending.
+type AlertSettings struct {
+	Notify     bool    `json:"notify"`     // send OS notifications (in-app alerts are always shown)
+	WarnPct    float64 `json:"warnPct"`    // budgets and limits warn at this share of the limit
+	SessionUSD float64 `json:"sessionUSD"` // alert when one session's list price crosses this; 0 = off
 }
 
 type Source struct {
@@ -38,6 +62,10 @@ type Config struct {
 	Thresholds  insight.Thresholds `json:"thresholds"`
 	PricingMode string             `json:"pricingMode"`
 	Initialized bool               `json:"initialized"`
+	Budgets     []Budget           `json:"budgets"`
+	Alerts      AlertSettings      `json:"alerts"`
+	// Notified remembers which budget or limit alerts were sent: alert key -> period key.
+	Notified map[string]string `json:"notified"`
 }
 
 type configStore struct {
@@ -67,6 +95,9 @@ func loadConfig() *configStore {
 	cs.conf.Thresholds = insight.DefaultThresholds()
 	if b, err := os.ReadFile(filepath.Join(cs.dir, "config.json")); err == nil {
 		_ = json.Unmarshal(b, &cs.conf)
+	}
+	if cs.conf.Alerts.WarnPct == 0 {
+		cs.conf.Alerts.WarnPct = 80
 	}
 	if cs.conf.Thresholds.ContextTokens == 0 {
 		cs.conf.Thresholds = insight.DefaultThresholds()

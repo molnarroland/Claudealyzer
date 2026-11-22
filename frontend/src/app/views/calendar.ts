@@ -5,7 +5,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { BarDatum, StackedBars } from '../charts/stacked-bars';
-import { UsageService, core, m } from '../lib/api';
+import { ExportService, UsageService, core, m } from '../lib/api';
 import { errText, fmtD, fmtT, fmtUSD, shortModel, total } from '../lib/format';
 import { AppState } from '../lib/state';
 import { AgentTag, Kpi, Segmented, TokenBreakdown } from './shared';
@@ -47,6 +47,7 @@ function addMonths(month: string, n: number): string {
           <button snCommand label="Next month" icon="lucideChevronRight" hideLabel [priority]="2" [disabled]="month() >= today.slice(0, 7)" (click)="shiftMonth(1)"></button>
         </sn-command-group>
         <button snCommand label="This month" icon="lucideCalendarDays" [priority]="1" [disabled]="month() === today.slice(0, 7)" (click)="state.calMonth.set('')"></button>
+        <button snCommand label="Export month" icon="lucideDownload" [priority]="0" (click)="exportCsv()"></button>
       }
       <span snCommandBarEnd class="flex items-center gap-2 pe-2">
         <cz-segmented label="Scope" [options]="scopes" [value]="state.calScope()" (valueChange)="state.calScope.set($event)" />
@@ -236,14 +237,14 @@ export class Calendar {
 
   constructor() {
     effect(() => {
-      const args = [this.projectKey(), this.state.sourceId(), this.state.agent(), this.month()] as const;
+      const args = [this.projectKey(), this.state.sourceId(), this.state.agent(), this.month(), this.state.filter()] as const;
       this.state.sources(); // billing edits
       this.lastScan();
       untracked(() => UsageService.Calendar(...args).then((c) => this.cal.set(c)));
     });
     effect(() => {
       const d = this.state.calDay();
-      const args = [this.projectKey(), this.state.sourceId(), this.state.agent()] as const;
+      const [pk, src, ag, f] = [this.projectKey(), this.state.sourceId(), this.state.agent(), this.state.filter()];
       this.state.sources();
       this.lastScan();
       untracked(() => {
@@ -251,11 +252,15 @@ export class Calendar {
         const n = ++this.daySeq;
         if (this.day()?.date !== d) this.day.set(null);
         this.err.set(null);
-        UsageService.Day(...args, d)
+        UsageService.Day(pk, src, ag, d, f)
           .then((r) => n === this.daySeq && this.day.set(r))
           .catch((e) => n === this.daySeq && this.err.set(errText(e)));
       });
     });
+  }
+
+  exportCsv(): void {
+    void this.state.exported(ExportService.CalendarCSV(this.projectKey(), this.state.sourceId(), this.state.agent(), this.month(), this.state.filter()), 'Month CSV');
   }
 
   /** Leading blanks so the 1st lands on its weekday (Monday first). */

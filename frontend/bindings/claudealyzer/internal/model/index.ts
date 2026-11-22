@@ -8,6 +8,7 @@ export {
 
 export type {
     DayStat,
+    RuleStat,
     Session,
     Step,
     Subagent,

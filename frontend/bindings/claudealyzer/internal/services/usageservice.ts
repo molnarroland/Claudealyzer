@@ -12,8 +12,19 @@ import * as core$0 from "../core/models.js";
 /**
  * Calendar: month is YYYY-MM ("" = current month); projectKey "" = whole source.
  */
-export function Calendar(projectKey: string, sourceID: string, agent: string, month: string): $CancellablePromise<core$0.Calendar | null> {
-    return $Call.ByID(1330313055, projectKey, sourceID, agent, month);
+export function Calendar(projectKey: string, sourceID: string, agent: string, month: string, f: core$0.Filter): $CancellablePromise<core$0.Calendar | null> {
+    return $Call.ByID(1330313055, projectKey, sourceID, agent, month, f);
+}
+
+/**
+ * ComparePeriods: dates are YYYY-MM-DD, both ends inclusive.
+ */
+export function ComparePeriods(projectKey: string, sourceID: string, agent: string, model: string, aFrom: string, aTo: string, bFrom: string, bTo: string): $CancellablePromise<core$0.Comparison | null> {
+    return $Call.ByID(3278165178, projectKey, sourceID, agent, model, aFrom, aTo, bFrom, bTo);
+}
+
+export function CompareSessions(aSource: string, aID: string, bSource: string, bID: string): $CancellablePromise<core$0.Comparison | null> {
+    return $Call.ByID(1821457913, aSource, aID, bSource, bID);
 }
 
 export function CostReport(sourceID: string, sessionID: string, factor: number): $CancellablePromise<core$0.CostReport | null> {
@@ -23,10 +34,17 @@ export function CostReport(sourceID: string, sessionID: string, factor: number):
 /**
  * Day: date is YYYY-MM-DD.
  */
-export function Day(projectKey: string, sourceID: string, agent: string, date: string): $CancellablePromise<core$0.DayDetail | null> {
-    return $Call.ByID(628143677, projectKey, sourceID, agent, date);
+export function Day(projectKey: string, sourceID: string, agent: string, date: string, f: core$0.Filter): $CancellablePromise<core$0.DayDetail | null> {
+    return $Call.ByID(628143677, projectKey, sourceID, agent, date, f);
 }
 
-export function Overview(projectKey: string, sourceID: string, agent: string, days: number): $CancellablePromise<core$0.Overview | null> {
-    return $Call.ByID(2343935706, projectKey, sourceID, agent, days);
+export function Overview(projectKey: string, sourceID: string, agent: string, days: number, f: core$0.Filter): $CancellablePromise<core$0.Overview | null> {
+    return $Call.ByID(2343935706, projectKey, sourceID, agent, days, f);
+}
+
+/**
+ * Project: one project's dashboard. days limits it (0 = all time).
+ */
+export function Project(projectKey: string, sourceID: string, agent: string, days: number, f: core$0.Filter): $CancellablePromise<core$0.ProjectReport | null> {
+    return $Call.ByID(2159398910, projectKey, sourceID, agent, days, f);
 }

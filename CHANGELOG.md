@@ -7,6 +7,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **OpenCode** support: reads `opencode.db` (both table layouts) and the older `storage/` JSON folders, read-only.
+  Child sessions become subagents; OpenCode's own cost total is shown next to the estimate.
+- **Search** across every transcript (prompts, answers, commands, file paths, tool calls), grouped by session, with
+  phrase matching and a kind filter. <kbd>⌘K</kbd>, the title-bar button, or Enter in the sidebar's project filter.
+- **Model and date filters** in the title bar, applied to the project tree, Overview, the dashboards, Compare, Trends and Search.
+- **Export**: a session as Markdown or JSON (or Markdown to the clipboard), sessions as CSV, daily usage as CSV.
+- **Project dashboard**: cost over time by day or week, top sessions, most-edited files, recurring findings, cost per model.
+- **Compare**: two sessions, or two periods (this vs last week or month, custom ranges), with better/worse changes,
+  findings per rule and cost per model. *Compare with…* in the sidebar's context menu.
+- **Insight trends**: per week, the share of sessions with findings, their estimated impact, and each rule's trend
+  (last 4 weeks against the 4 before).
+- **Budgets & limits**: daily, weekly and monthly budgets per scope (list price or what you pay) with a projection;
+  subscription 5-hour windows and weeks rebuilt from history, with optional limits per source.
+- **Alerts** for budgets, limits and expensive sessions, in the app and optionally as system notifications.
+
+### Changed
+
+- The agent filter in the title bar is now a menu, to leave room for the new filters.
+- Session summaries now keep hourly cost, per-rule finding counts and edited files; the cache is rebuilt once on first start.
+
 ## [0.1.1] - 2026-11-18
 
 ### Changed

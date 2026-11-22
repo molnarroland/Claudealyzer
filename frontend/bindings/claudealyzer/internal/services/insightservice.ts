@@ -27,3 +27,10 @@ export function SaveThresholds(t: insight$0.Thresholds): $CancellablePromise<voi
 export function Thresholds(): $CancellablePromise<insight$0.Thresholds> {
     return $Call.ByID(3485205786);
 }
+
+/**
+ * Trends: per week, how often each rule fired over the last `weeks` weeks.
+ */
+export function Trends(projectKey: string, sourceID: string, agent: string, weeks: number, f: core$0.Filter): $CancellablePromise<core$0.TrendReport | null> {
+    return $Call.ByID(3206861170, projectKey, sourceID, agent, weeks, f);
+}

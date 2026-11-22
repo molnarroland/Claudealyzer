@@ -21,6 +21,15 @@ export interface DayStat {
     "usage": Usage;
 }
 
+/**
+ * RuleStat is how often one insight rule fired in a session and its estimated impact.
+ */
+export interface RuleStat {
+    "count": number;
+    "high": number;
+    "impactUSD": number;
+}
+
 export interface Session {
     "id": string;
     "sourceId": string;
@@ -54,6 +63,22 @@ export interface Session {
      * YYYY-MM-DD -> prompts and usage (subagents included)
      */
     "days": { [_ in string]?: DayStat } | null;
+
+    /**
+     * Hourly is list price per local clock hour (unix seconds of the hour start), subagents included.
+     * It feeds the 5-hour and weekly usage windows.
+     */
+    "hourly": { [_ in `${number}`]?: number } | null;
+
+    /**
+     * Rules counts this session's findings per insight rule (severity ok left out).
+     */
+    "rules": { [_ in string]?: RuleStat } | null;
+
+    /**
+     * EditedFiles counts edit steps per file (subagents included, the most edited files only).
+     */
+    "editedFiles": { [_ in string]?: number } | null;
     "findingsHigh": number;
     "findingsMed": number;
     "rateLimitPct": number | null;

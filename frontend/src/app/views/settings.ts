@@ -175,12 +175,12 @@ const SYSTEM = 'system';
       <div class="grid gap-3 text-[13px]">
         <label class="grid grid-cols-[110px_minmax(0,1fr)] items-center gap-2.5">Agent
           <select hlmInput class="h-9" [value]="newAgent()" (change)="newAgent.set($any($event.target).value); check()">
-            <option value="claude">Claude Code</option><option value="codex">Codex</option><option value="gemini">Gemini CLI</option>
+            <option value="claude">Claude Code</option><option value="codex">Codex</option><option value="gemini">Gemini CLI</option><option value="opencode">OpenCode</option>
           </select></label>
         <label class="grid grid-cols-[110px_minmax(0,1fr)] items-center gap-2.5">Name
           <input hlmInput class="h-9" placeholder="e.g. claude-client-x" [value]="newName()" (input)="newName.set($any($event.target).value)" /></label>
         <div class="grid grid-cols-[110px_minmax(0,1fr)] items-center gap-2.5"><span id="cz-folder">Folder</span>
-          <div class="flex gap-2"><input hlmInput class="mono h-9 min-w-0 flex-1" aria-labelledby="cz-folder" placeholder="~/.claude-client-x" [value]="newDir()" (change)="newDir.set($any($event.target).value); check()" />
+          <div class="flex gap-2"><input hlmInput class="mono h-9 min-w-0 flex-1" aria-labelledby="cz-folder" [placeholder]="newAgent() === 'opencode' ? '~/.local/share/opencode' : '~/.claude-client-x'" [value]="newDir()" (change)="newDir.set($any($event.target).value); check()" />
             <button hlmBtn variant="outline" type="button" (click)="browse()">Browse…</button></div></div>
         @if (det(); as d) {
           <div class="grid gap-0.5 rounded-lg border bg-muted px-3 py-2 text-[12.5px]"><b>{{ d.ok ? d.message : 'Nothing found' }}</b>
