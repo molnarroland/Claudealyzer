@@ -4,7 +4,7 @@
 #   scripts/screenshots/run.sh [--today YYYY-MM-DD] [--keep]
 #
 # 1. builds the frontend and the app in Wails server mode (no window: the UI is served over HTTP),
-# 2. writes fake Claude Code / Codex / Gemini history into a temporary HOME (gen_mock.py),
+# 2. writes fake Claude Code / Codex / Gemini / OpenCode history into a temporary HOME (gen_mock.py),
 # 3. starts the app with that HOME and demo billing plans,
 # 4. drives it with Playwright (shots.mjs) through the macOS, Windows and GNOME looks, light and dark,
 # 5. scales the shots to 1800 px wide and writes them as WebP to docs/images/, plus history.png for og:image.
@@ -67,12 +67,20 @@ import json, sys
 p = sys.argv[1]
 c = json.load(open(p))
 plans = {
-    "claude": {"kind": "subscription", "fee": 100, "renewDay": 1, "discountPct": 0, "plan": "Max"},
+    "claude": {"kind": "subscription", "fee": 100, "renewDay": 1, "discountPct": 0, "plan": "Max", "limit5hUSD": 12, "limitWeekUSD": 60, "weekResetDay": 1},
     "codex": {"kind": "subscription", "fee": 20, "renewDay": 5, "discountPct": 0, "plan": "Plus"},
     "gemini": {"kind": "free", "fee": 0, "renewDay": 0, "discountPct": 0, "plan": ""},
+    "opencode": {"kind": "api", "fee": 0, "renewDay": 0, "discountPct": 0, "plan": ""},
 }
 for s in c["sources"]:
     s["billing"] = plans[s["agent"]]
+# Demo budgets and alerts for the Budgets & limits shot.
+c["budgets"] = [
+    {"id": "demo-month", "name": "All agents", "sourceId": "", "projectKey": "", "period": "month", "limitUSD": 150, "basis": "list", "notify": True},
+    {"id": "demo-week", "name": "acme-storefront", "sourceId": "", "projectKey": "/Users/demo/code/acme-storefront", "period": "week", "limitUSD": 25, "basis": "list", "notify": True},
+    {"id": "demo-day", "name": "Daily cap", "sourceId": "", "projectKey": "", "period": "day", "limitUSD": 10, "basis": "paid", "notify": False},
+]
+c["alerts"] = {"notify": False, "warnPct": 80, "sessionUSD": 5}
 json.dump(c, open(p, "w"), indent=2)
 EOF
 start_server

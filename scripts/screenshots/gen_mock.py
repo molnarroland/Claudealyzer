@@ -3,12 +3,13 @@
 
 Usage: gen_mock.py <fake_home> [--today YYYY-MM-DD]
 
-Writes Claude Code, Codex CLI and Gemini CLI history under <fake_home> (~/.claude, ~/.codex, ~/.gemini).
+Writes Claude Code, Codex CLI, Gemini CLI and OpenCode history under <fake_home> (~/.claude, ~/.codex, ~/.gemini,
+~/.local/share/opencode/opencode.db).
 Everything is invented: user "demo", made-up projects, prompts and files. The random seed is fixed, so
 every run makes the same sessions; only the dates follow --today (default: the current date), so the
 Calendar's "today" always has data.
 """
-import argparse, json, os, random, uuid
+import argparse, json, os, random, sqlite3, uuid
 from datetime import datetime, timedelta, timezone
 
 ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -272,6 +273,91 @@ for day in range(40, -1, -1):
             codex_session(proj, start)
         else:
             gemini_session(proj, start)
+
+
+
+# ---------------- OpenCode ----------------
+# Its own random generator, so the Claude, Codex and Gemini sessions above stay the same as before.
+orn = random.Random(7)
+
+
+def opencode_db():
+    path = os.path.join(HOME, ".local", "share", "opencode", "opencode.db")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if os.path.exists(path):
+        os.remove(path)
+    db = sqlite3.connect(path)
+    db.executescript("""
+    CREATE TABLE session_v2 (id text PRIMARY KEY, project_id text NOT NULL, parent_id text, slug text NOT NULL, directory text NOT NULL,
+      title text, version text NOT NULL, time_created integer NOT NULL, time_updated integer NOT NULL);
+    CREATE TABLE session_message (id text PRIMARY KEY, session_id text NOT NULL, type text NOT NULL, seq integer NOT NULL,
+      time_created integer NOT NULL, time_updated integer NOT NULL, data text NOT NULL);
+    CREATE TABLE session_part (message_id text NOT NULL, session_id text NOT NULL, ordinal integer NOT NULL, type text NOT NULL,
+      call_id text, time_created integer NOT NULL, time_updated integer NOT NULL, data text NOT NULL);
+    """)
+    return db
+
+
+def ms(t):
+    return int(t.timestamp() * 1000)
+
+
+def opencode_session(db, proj, start, n):
+    meta = PROJECTS[proj]
+    cwd = f"{USER_HOME}/code/{proj}"
+    sid = f"ses_{orn.getrandbits(48):012x}"
+    model = orn.choice(["claude-sonnet-5-5", "claude-sonnet-5-5", "gpt-6-luna"])
+    prompts = orn.sample(meta["prompts"], orn.randint(1, 3))
+    t = start
+    seq = 0
+    ctx = 9000
+    for i, p in enumerate(prompts):
+        t += timedelta(minutes=orn.uniform(1, 5))
+        mid = f"msg_{sid}_{i}u"
+        db.execute("INSERT INTO session_message VALUES (?,?,?,?,?,?,?)", (mid, sid, "user", seq, ms(t), ms(t), json.dumps({"time": {"created": ms(t)}})))
+        db.execute("INSERT INTO session_part VALUES (?,?,?,?,?,?,?,?)", (mid, sid, 0, "text", None, ms(t), ms(t), json.dumps({"text": p})))
+        seq += 1
+        a0 = t + timedelta(seconds=2)
+        aid = f"msg_{sid}_{i}a"
+        parts = [("reasoning", None, {"text": "Look at the relevant code first, then make the change and run the tests."})]
+        cost = 0.0
+        for k in range(orn.randint(2, 5)):
+            t += timedelta(seconds=orn.uniform(5, 40))
+            f = orn.choice(meta["files"])
+            tool, inp = orn.choice([("read", {"filePath": f"{cwd}/{f}"}), ("edit", {"filePath": f"{cwd}/{f}"}), ("bash", {"command": meta["test"]}), ("grep", {"pattern": "TODO"})])
+            end = t + timedelta(seconds=orn.uniform(0.2, 25 if tool == "bash" else 1))
+            parts.append(("tool", f"call_{k}", {"tool": tool, "callID": f"call_{k}", "state": {"status": "completed", "input": inp,
+                          "output": "ok" if tool != "bash" else "PASS (42 tests)", "time": {"start": ms(t), "end": ms(end)}}}))
+            ctx += orn.randint(1500, 6000)
+            tok = {"input": orn.randint(200, 1500), "output": orn.randint(150, 900), "reasoning": orn.randint(0, 300),
+                   "cache": {"read": ctx, "write": orn.randint(1000, 5000)}}
+            c = round((tok["input"] * 3 + tok["output"] * 15 + ctx * 0.3 + tok["cache"]["write"] * 3.75) / 1e6, 4)
+            cost += c
+            t = end
+            parts.append(("step-finish", None, {"tokens": tok, "cost": c, "time": {"end": ms(t)}}))
+        parts.insert(len(parts) - 1, ("text", None, {"text": orn.choice(ANSWERS).format(f=meta["files"][0])}))
+        db.execute("INSERT INTO session_message VALUES (?,?,?,?,?,?,?)", (aid, sid, "assistant", seq, ms(a0), ms(t),
+                   json.dumps({"time": {"created": ms(a0), "completed": ms(t)}, "modelID": model, "providerID": "anthropic" if model.startswith("claude") else "openai",
+                               "cost": round(cost, 4), "path": {"cwd": cwd, "root": cwd}})))
+        for k, (typ, call, data) in enumerate(parts):
+            db.execute("INSERT INTO session_part VALUES (?,?,?,?,?,?,?,?)", (aid, sid, k, typ, call, ms(a0) + k, ms(a0) + k, json.dumps(data)))
+        seq += 1
+    db.execute("INSERT INTO session_v2 VALUES (?,?,?,?,?,?,?,?,?)", (sid, "prj_" + proj, None, f"demo-{n}", cwd, prompts[0][:60], "1.4.2", ms(start), ms(t)))
+
+
+oc = opencode_db()
+n = 0
+for day in range(40, -1, -1):
+    if orn.random() < 0.6:
+        continue
+    d = TODAY - timedelta(days=day)
+    start = d.replace(hour=orn.randint(9, 18), minute=orn.randint(0, 59), second=0)
+    if start > TODAY:
+        start = TODAY - timedelta(hours=3)
+    n += 1
+    opencode_session(oc, orn.choice(["weather-api", "pixel-notes", "weather-api"]), start, n)
+oc.commit()
+oc.close()
 
 w(os.path.join(HOME, ".codex", "session_index.jsonl"), codex_index)
 os.makedirs(os.path.join(HOME, ".gemini"), exist_ok=True)

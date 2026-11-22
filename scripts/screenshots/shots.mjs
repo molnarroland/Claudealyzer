@@ -76,12 +76,32 @@ for (const [label, name] of [['Session analysis', 'analysis'], ['Cost explained'
   await nav(label);
   await shot(name);
 }
-await page.locator('text=TODAY').first().click();
+await page.locator('cz-calendar').locator('text=TODAY').first().click();
 await shot('calendar-day');
 await nav('Sources & settings');
 await shot('settings');
 
+// The 0.2 views: search, the project dashboard, compare, trends, budgets.
 await openSession();
+await page.getByRole('button', { name: 'Search transcripts', exact: true }).click();
+await wait();
+await page.getByLabel('Search transcripts', { exact: true }).fill('cache');
+await shot('search');
+await nav('Project dashboard');
+await shot('project');
+await nav('Compare');
+await page.locator('cz-segmented', { hasText: 'Two periods' }).getByText('Two periods', { exact: true }).click();
+await page.getByLabel('Period preset', { exact: true }).selectOption('month');
+await shot('compare');
+await nav('Insight trends');
+await shot('trends');
+await nav('Budgets & limits');
+await shot('budgets');
+
+await openSession();
+// A turn may still be selected from an earlier pass: widen the panel to the session first.
+await page.getByText('Show whole session').first().click().catch(() => {});
+await wait();
 await page.getByText('Insights (', { exact: false }).first().click();
 await wait();
 await page.getByText('Show whole session').first().click().catch(() => {});

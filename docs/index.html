@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Claudealyzer: see where your coding agent's tokens, time and money go</title>
-  <meta name="description" content="A free, local, read-only desktop app for Claude Code, Codex CLI and Gemini CLI history. Cost per session, turn and tool call, ranked insights, and an honest cost breakdown.">
+  <meta name="description" content="A free, local, read-only desktop app for Claude Code, Codex CLI, Gemini CLI and OpenCode history. Cost per session, turn and tool call, search, budgets and usage limits, ranked insights, and an honest cost breakdown.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:title" content="Claudealyzer">
   <meta property="og:description" content="See where your coding agent's tokens, time and money go. Local, read-only, open source.">
@@ -44,7 +44,7 @@
     <p class="eyebrow"><span class="dot"></span> Free &amp; open source · macOS · Windows · Linux</p>
     <h1>See where your coding agent's <span class="grad">tokens, time and money</span> go.</h1>
     <p class="lede">
-      Claudealyzer reads the transcripts that Claude Code, Codex and Gemini CLI already keep on your machine.
+      Claudealyzer reads the transcripts that Claude Code, Codex, Gemini CLI and OpenCode already keep on your machine.
       It shows the cost of every project, session, prompt, tool call and subagent, explains it, and tells you what to change.
     </p>
     <div class="cta">
@@ -55,6 +55,7 @@
       <li><span class="ag ag-claude"></span>Claude Code</li>
       <li><span class="ag ag-codex"></span>Codex CLI / Desktop</li>
       <li><span class="ag ag-gemini"></span>Gemini CLI</li>
+      <li><span class="ag ag-opencode"></span>OpenCode</li>
     </ul>
   </div>
 
@@ -104,7 +105,8 @@
           <li>Thinking, shell commands, file reads and edits, searches, web and MCP calls</li>
           <li>Subagents open inline with their own steps, usage and cost</li>
           <li>Peak context and cost on every turn, plus a red dot on sessions with high findings</li>
-          <li>Sort sessions by recency or by cost, and filter by agent</li>
+          <li>Sort sessions by recency or by cost, and filter by agent, model and date</li>
+          <li>Export a session as Markdown or JSON</li>
         </ul>
       </div>
       <figure class="shot zoomable"><img src="images/history.webp" alt="History view" loading="lazy" width="1800" height="1125"></figure>
@@ -178,6 +180,7 @@
           <li>7 days, 30 days or all time</li>
           <li>Finding badges on every row</li>
           <li>Average and median cost per session</li>
+          <li>Export the table, or daily usage, as CSV</li>
         </ul>
       </div>
       <figure class="shot zoomable"><img src="images/overview.webp" alt="Overview view" loading="lazy" width="1800" height="1125"></figure>
@@ -201,6 +204,75 @@
     </article>
 
     <article class="feature reverse">
+      <div class="feature-text">
+        <span class="tag">Search</span>
+        <h3>Find that one prompt again</h3>
+        <p>Search every transcript at once: prompts, answers, shell commands, file paths and tool calls. Press <kbd>⌘K</kbd> from anywhere.</p>
+        <ul class="ticks">
+          <li>Every word must match; "quoted phrases" match as a whole</li>
+          <li>Narrow it to prompts, answers, commands, files or tools, or to one project</li>
+          <li>Click a hit to open that turn, or the command's step detail</li>
+        </ul>
+      </div>
+      <figure class="shot zoomable"><img src="images/search.webp" alt="Search view" loading="lazy" width="1800" height="1125"></figure>
+    </article>
+
+    <article class="feature">
+      <div class="feature-text">
+        <span class="tag">Project dashboard</span>
+        <h3>One project, all of it</h3>
+        <p>What a project cost over time, which sessions were the most expensive, and which problems keep coming back.</p>
+        <ul class="ticks">
+          <li>Cost per agent by day or by week, for 30 days, 90 days or all time</li>
+          <li>Most-edited files and cost per model</li>
+          <li>Recurring findings: how many sessions each rule fired in, and what it cost</li>
+        </ul>
+      </div>
+      <figure class="shot zoomable"><img src="images/project.webp" alt="Project dashboard" loading="lazy" width="1800" height="1125"></figure>
+    </article>
+
+    <article class="feature reverse">
+      <div class="feature-text">
+        <span class="tag">Compare</span>
+        <h3>This week vs. last week</h3>
+        <p>Put two sessions, or two periods, side by side. Every change is marked better or worse.</p>
+        <ul class="ticks">
+          <li>Cost, cost per prompt, tokens, cache hit, peak context, subagents and findings</li>
+          <li>This week vs last week, this month vs last month, or your own ranges</li>
+          <li>Right-click two sessions in the sidebar to compare them</li>
+        </ul>
+      </div>
+      <figure class="shot zoomable"><img src="images/compare.webp" alt="Compare view with two periods" loading="lazy" width="1800" height="1125"></figure>
+    </article>
+
+    <article class="feature">
+      <div class="feature-text">
+        <span class="tag">Insight trends</span>
+        <h3>Are the suggestions working?</h3>
+        <p>Week by week, how often each rule fires and what it costs, so you can see whether a change in how you work paid off.</p>
+        <ul class="ticks">
+          <li>Share of sessions with a finding and the estimated impact per week</li>
+          <li>The last 4 weeks against the 4 before, per rule: improving, steady or worse</li>
+        </ul>
+      </div>
+      <figure class="shot zoomable"><img src="images/trends.webp" alt="Insight trends view" loading="lazy" width="1800" height="1125"></figure>
+    </article>
+
+    <article class="feature reverse">
+      <div class="feature-text">
+        <span class="tag">Budgets &amp; limits</span>
+        <h3>Know before you run out</h3>
+        <p>Budgets for a day, a week or a month, and your subscription's 5-hour and weekly windows, rebuilt from your history.</p>
+        <ul class="ticks">
+          <li>For everything, one source or one project, in list price or in what you pay</li>
+          <li>A projection to the end of the period at the current pace</li>
+          <li>Alerts in the app, and optionally as system notifications, when a budget, a limit or a single session gets expensive</li>
+        </ul>
+      </div>
+      <figure class="shot zoomable"><img src="images/budgets.webp" alt="Budgets and limits view" loading="lazy" width="1800" height="1125"></figure>
+    </article>
+
+    <article class="feature">
       <div class="feature-text">
         <span class="tag">Sources &amp; settings</span>
         <h3>Your folders, your billing, your prices</h3>
@@ -251,7 +323,7 @@
       <p>No magic multipliers. Every figure comes from the tokens in your transcripts and a pricing table you can see and edit.</p>
     </header>
     <ol class="steps">
-      <li><h4>Each API response is counted once</h4><p>Claude by <code>message.id</code>, Codex by <code>response_id</code>, Gemini by message id, even when a response shows up several times in a transcript.</p></li>
+      <li><h4>Each API response is counted once</h4><p>Claude by <code>message.id</code>, Codex by <code>response_id</code>, Gemini by message id, OpenCode by step, even when a response shows up several times in a transcript.</p></li>
       <li><h4>Usage is normalised</h4><p>Uncached input, cache write (5 min / 1 h), cache read and output, including thinking. For Codex and Gemini, uncached = input − cached.</p></li>
       <li><h4>List price uses the rate on that day</h4><p>Σ tokens × rate per model, using the rate that applied on the day of each request. Unknown models are shown as <em>price unknown</em>, never as $0.</p></li>
       <li><h4>Your cost follows your billing</h4><p>API key: list price minus your discount. Subscription or seat: plan fee × this usage's share of the billing period. Free tier: $0.</p></li>
@@ -346,7 +418,7 @@
   <div class="wrap footer-inner">
     <div class="brand"><img src="images/icon.webp" alt="" width="22" height="22"> Claudealyzer</div>
     <p>Claudealyzer is an independent project. It is not affiliated with, endorsed by or sponsored by Anthropic, OpenAI or Google.
-      Claude, Claude Code, Codex and Gemini are trademarks of their respective owners. Screenshots show generated demo data.</p>
+      Claude, Claude Code, Codex, Gemini and OpenCode are trademarks of their respective owners. Screenshots show generated demo data.</p>
     <p><a data-repo="" href="#">GitHub</a> · <a data-repo="/blob/main/LICENSE" href="#">MIT License</a> · <a href="https://github.com/Spartan-Native/spartan-native">Spartan Native</a> · <a href="#top">Back to top ↑</a></p>
   </div>
 </footer>

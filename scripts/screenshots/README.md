@@ -16,8 +16,8 @@ Playwright and its Chromium are installed into this folder on the first run.
 
 | File | Role |
 | --- | --- |
-| `gen_mock.py` | Writes fake Claude Code, Codex CLI and Gemini CLI history for user `demo` and four made-up projects (`acme-storefront`, `weather-api`, `pixel-notes`, `infra-terraform`) into a temporary HOME. The seed is fixed, so the sessions are the same every run; only the dates move. |
-| `run.sh` | Builds the app in Wails server mode (the UI served over HTTP, no window), starts it with that HOME, gives the sources demo plans (Claude Max $100, Codex Plus $20, Gemini free), runs `shots.mjs`, then scales the PNGs to 1800 px and writes WebP to `docs/images/`, plus `history.png` for `og:image` and GitHub's social preview. |
+| `gen_mock.py` | Writes fake Claude Code, Codex CLI, Gemini CLI and OpenCode history for user `demo` and four made-up projects (`acme-storefront`, `weather-api`, `pixel-notes`, `infra-terraform`) into a temporary HOME. The seed is fixed, so the sessions are the same every run; only the dates move. |
+| `run.sh` | Builds the app in Wails server mode (the UI served over HTTP, no window), starts it with that HOME, gives the sources demo plans (Claude Max $100 with demo usage limits, Codex Plus $20, Gemini free, OpenCode on an API key) and demo budgets, runs `shots.mjs`, then scales the PNGs to 1800 px and writes WebP to `docs/images/`, plus `history.png` for `og:image` and GitHub's social preview. |
 | `shots.mjs` | Drives the app with Playwright at 1440×900 @2x: opens *The checkout total is off by one cent…* in `acme-storefront` (sorted by cost) and takes each view in the macOS 26, Windows 11 and GNOME looks, light and dark. It fails if a real filesystem path is visible in the UI. |
 
 ## After a UI change

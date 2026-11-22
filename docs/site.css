@@ -79,7 +79,7 @@ h1, h2, h3, h4 { line-height: 1.15; letter-spacing: -.02em; margin: 0; }
 .agents { list-style: none; display: flex; justify-content: center; gap: 22px; padding: 0; margin: 28px 0 0; color: var(--muted); font-size: .92rem; flex-wrap: wrap; }
 .agents li { display: inline-flex; align-items: center; gap: 8px; }
 .ag { width: 9px; height: 9px; border-radius: 50%; }
-.ag-claude { background: #2f7ae5; } .ag-codex { background: #ef6a33; } .ag-gemini { background: #19a974; }
+.ag-claude { background: #2f7ae5; } .ag-codex { background: #ef6a33; } .ag-gemini { background: #19a974; } .ag-opencode { background: #e3a008; }
 
 .hero-shot { margin-top: 56px; }
 .switcher { display: flex; justify-content: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
